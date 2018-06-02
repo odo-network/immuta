@@ -1,0 +1,48 @@
+{
+  "name": "immuta",
+  "version": "0.0.1",
+  "description": "Create your next immutable state by mutating the current one",
+  "main": "dist/immuta.js",
+  "umd:main": "dist/immuta.umd.js",
+  "module": "dist/immuta.module.js",
+  "jsnext:main": "dist/immuta.module.js",
+  "react-native": "dist/immuta.module.js",
+  "types": "./dist/immer.d.ts",
+  "scripts": {
+    "test:perf": "babel-node --expose_gc perf/run.js",
+    "try": "babel-node ./quick-try.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/odo-network/immuta.git"
+  },
+  "keywords": ["immutable", "mutable", "copy-on-write", "proxy-on-read"],
+  "author": "Braden R. Napier",
+  "license": "MIT",
+  "files": ["dist/"],
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.49",
+    "@babel/core": "^7.0.0-beta.49",
+    "@babel/node": "^7.0.0-beta.49",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0-beta.49",
+    "@babel/plugin-transform-runtime": "^7.0.0-beta.49",
+    "@babel/preset-env": "^7.0.0-beta.49",
+    "@babel/preset-flow": "^7.0.0-beta.49",
+    "@babel/preset-stage-0": "^7.0.0-beta.49",
+    "@babel/register": "^7.0.0-beta.49",
+    "ava": "^1.0.0-beta.4",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "8.2.1",
+    "cross-env": "^5.1.6",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.48.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-promise": "^3.8.0",
+    "flow-bin": "^0.73.0",
+    "flow-copy-source": "^1.3.0",
+    "flow-typed": "^2.4.0",
+    "npm-run-all": "^4.1.3",
+    "rimraf": "^2.6.2"
+  }
+}

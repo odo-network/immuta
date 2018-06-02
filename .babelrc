@@ -1,0 +1,17 @@
+{
+  "presets": [
+    "@babel/preset-flow",
+    [
+      "@babel/preset-env",
+      {
+        "cacheDirectory": true,
+        "shippedProposals": true,
+        "useBuiltIns": "usage",
+        "targets": {
+          "node": true,
+          "browsers": ["last 2 versions"]
+        }
+      }
+    ]
+  ]
+}
