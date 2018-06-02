@@ -1,7 +1,7 @@
 {
   "name": "immuta",
   "version": "0.0.1",
-  "description": "Create your next immutable state by mutating the current one",
+  "description": "Simple immutable data library that provides changed data snapshots and rollbacks",
   "main": "dist/immuta.js",
   "umd:main": "dist/immuta.umd.js",
   "module": "dist/immuta.module.js",
