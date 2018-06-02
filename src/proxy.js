@@ -87,7 +87,7 @@ function proxiedSet<S: Object>(descriptor: ProxyDescriptor<S>, key: any, value: 
   // just ignore this silly request!
   if (key === PROXY_SYMBOL) return true;
 
-  console.log('Set! ', key, value);
+  // console.log('Set! ', key, value);
 
   const current = Reflect.get(descriptor.copy || descriptor.base, key);
 
@@ -109,7 +109,7 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
   const descriptor = fn[PROXY_SYMBOL];
   const { parent } = descriptor;
 
-  console.log('Apply! ', fn, context, args);
+  // console.log('Apply! ', fn, context, args);
 
   const owner = parent.copy || parent.base;
 
@@ -166,24 +166,25 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
             // handle.change()
           }
         }
-        return;
+        break;
       }
       case 'delete': {
         break;
       }
       case 'add': {
         if (owner.has(args[0])) {
-          return fn;
+          return () => {};
         }
-        return fn;
+        break;
       }
       case 'set': {
         // we need to see if the set will cause a mutation
         const current = owner.get(args[0]);
+        console.log(current, args[1]);
         if (current === args[1]) {
           // ? User must be careful here as setting an object on the map
           // ? is potentially not going to be detected
-          return fn;
+          return () => {};
         }
         break;
       }

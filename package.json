@@ -16,10 +16,17 @@
     "type": "git",
     "url": "git+https://github.com/odo-network/immuta.git"
   },
-  "keywords": ["immutable", "mutable", "copy-on-write", "proxy-on-read"],
+  "keywords": [
+    "immutable",
+    "mutable",
+    "copy-on-write",
+    "proxy-on-read"
+  ],
   "author": "Braden R. Napier",
   "license": "MIT",
-  "files": ["dist/"],
+  "files": [
+    "dist/"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.49",
     "@babel/core": "^7.0.0-beta.49",
@@ -33,6 +40,7 @@
     "ava": "^1.0.0-beta.4",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "8.2.1",
+    "chalk": "^2.4.1",
     "cross-env": "^5.1.6",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",

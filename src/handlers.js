@@ -18,12 +18,12 @@ export function change<S: Object>(
   isDelete?: boolean = false,
 ) {
   if (descriptor.children[key] && typeof value !== 'object') {
-    console.log('Delete');
+    // console.log('Delete');
     // no longer an object so previous proxy can be removed
     delete descriptor.children[key];
   }
 
-  console.log(descriptor.base[key], value);
+  // console.log(descriptor.base[key], value);
 
   if (descriptor.base[key] === value) {
     // value has returned to the base value - it is not changed anymore

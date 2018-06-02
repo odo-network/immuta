@@ -1,115 +1,47 @@
 /* @flow */
 import immuta from './src/immuta';
+import printDifference from './print-difference';
 
-const state = Object.freeze({
-  foo: { bar: { ok: 'go' }, baz: { ok: 'go' } },
-  data: { map: new Map(), arr: [1, 2, 3, { one: 'two' }] },
-});
+const state = {
+  deep: {
+    foo: {
+      bar: {
+        baz: true,
+      },
+    },
+    set: new Set([{ one: 'two' }, { two: 'three' }]),
+    map: new Map(),
+    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }],
+  },
+};
 
-const nextState = immuta(
+const next = immuta(
+  // provide the state to start with
   state,
-  draftState => {
-    // draftState.foo.bar.ok = 's';
-    draftState.data.map.set('one', { foo: 'bar' });
+  // draft is a proxy that will copy-on-write
+  draft => {
+    draft.deep.set.clear();
+    draft.deep.set.add({ one: 'two' });
+    draft.deep.array[1].data = { one: 'two' };
+    // / do stuff
+    // if (draft.deep.map.size === 0) {
+    //   delete draft.deep.array[1].data;
+    // }
+    draft.deep.array[2].i += 5;
 
-    draftState.data.map.forEach(v => {
-      console.log('Value: ', v);
+    draft.deep.array.push({
+      i: 6,
+      new: 'value',
     });
 
-    // draftState.data.map.clear();
-    // draftState.data.arr[3].two = 'foo';
-    // draftState.foo.bar.ok = 'go';
+    draft.deep.map.set('YoYo', 1);
   },
-  (snapshot, changeMap, rollback) => {
-    console.log('Changed State: ', snapshot, '\n', changeMap.keys());
-    // changedState holds only the changedValues so far and is executed synchronously
-    // after the draftState is called when defined.
-    //
-    // it also allows rollbacks so it is easy to rollback changes if they do not meet
-    // some specific parameters.
-    // console.log('I THINK NOT!! ROLL THAT SHYT BACK! ', rollback());
-    // rollback();
+  // optional callback for change events
+  (changedState, changedMap, rollback) => {
+    // rollback() will cancel the changes and return original object
+    // changedMap is Map { 'path.to.change' => changedValue }
+    // changedState is the new state being returned to caller (nextState)
   },
 );
 
-console.log('EQUAL? ', nextState === state, nextState.foo === state.foo, nextState.foo.bar === state.foo.bar);
-
-// const nextState2 = immuta(
-//   nextState,
-//   draftState => {
-//     draftState.foo.bar.ok = 'go';
-//     // draftState.foo.bar.ok = 'go';
-//   },
-//   (snapshot, changeMap) => {
-//     console.log('Changed State: ', snapshot, '\n', changeMap.keys());
-//     // changedState holds only the changedValues so far and is executed synchronously
-//     // after the draftState is called when defined.
-//     //
-//     // it also allows rollbacks so it is easy to rollback changes if they do not meet
-//     // some specific parameters.
-//     // console.log('I THINK NOT!! ROLL THAT SHYT BACK! ', rollback());
-//     // rollback();
-//   },
-// );
-
-// console.log(`
-//   State eq 1? ${String(state === nextState)}
-//   State eq 2? ${String(state === nextState2)}
-//   1 eq 2?     ${String(nextState === nextState2)}
-// `);
-
-setTimeout(() => {
-  console.log(nextState);
-}, 500);
-
-// const nextState2 = immuta(
-//   nextState,
-//   draftState => {
-//     draftState.test = 'hi';
-//   },
-//   (changedState, changeMap) => {
-//     console.log('Changed State: ', changedState);
-//     // changedState holds only the changedValues so far and is executed synchronously
-//     // after the draftState is called when defined.
-//     //
-//     // it also allows rollbacks so it is easy to rollback changes if they do not meet
-//     // some specific parameters.
-//     // console.log(changeMap.keys());
-//     if (changedState.foo === 'fail') {
-//       rollback();
-//     }
-//   },
-// );
-
-// console.log('Next: ', nextState === nextState2);
-
-// const obj = {
-//   one: {
-//     two: 'three',
-//     three: {
-//       foo: 'bar',
-//     },
-//   },
-//   two: {
-//     test: 'this',
-//   },
-// };
-
-// const [proxy, descriptor] = deepProxy(obj);
-
-// // proxy.one.three = 'hi';
-
-// proxy.one.three.bar = 'ok';
-
-// // console.log(proxy.one.three);
-// // console.log(proxy);
-// // console.log('next');
-// // console.log(proxy.one);
-
-// // console.log(descriptor.root.changed);
-
-// // proxy.one.two = 'ok';
-// // proxy.test = 1;
-// // console.log(descriptor.root.changed);
-
-// console.log(obj.one === descriptor.copy);
+printDifference(state, next);
