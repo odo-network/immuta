@@ -34,7 +34,7 @@ function iterate(keys, from, to) {
             diff.add([chalk.red('[delete]'.padEnd(c.padstart + 3)), k, v]);
           } else {
             vals.add(k);
-            diff.add([chalk.red('[change]'.padEnd(c.padstart + 3)), k, v, to.get(k)]);
+            diff.add([c.change('[change]'.padEnd(c.padstart + 3)), k, v, to.get(k)]);
           }
         });
       }
@@ -44,13 +44,23 @@ function iterate(keys, from, to) {
           return;
         }
         vals.add(k);
-        diff.add([chalk.green('[create]'.padEnd(c.padstart + 3)), k, prev, to.get(k)]);
+        if (prev !== undefined) {
+          diff.add([c.change('[change]'.padEnd(c.padstart + 3)), k, prev, value]);
+        } else {
+          diff.add([c.equal('[create]'.padEnd(c.padstart + 3)), k, prev, value]);
+        }
       });
 
       diff.forEach(([type, k, prev, value]) => {
         console.group(type, c.change(`${typeColor(String(k))} => (`));
-        printKV('Type', stringFromTo(typeColor(typeof prev), typeColor(typeof v)));
+        printKV('Type', stringFromTo(typeColor(typeof prev), typeColor(typeof value)));
         printKV('Value', stringFromTo(typeColor(prev), typeColor(value)));
+        if (typeof value === 'object') {
+          console.group(c.change('{'));
+          iterate([...keys, k], prev, value);
+          console.groupEnd();
+          console.log(c.change('}'));
+        }
         console.groupEnd();
         console.log(c.change('),'));
       });
@@ -112,7 +122,7 @@ function iterate(keys, from, to) {
         } else {
           console.group(c.change(`${key}: (`));
           printKV('Type', stringFromTo(typeColor(typeof prev), typeColor(typeof value)));
-          printKV('Value', stringFromTo(typeColor(prev), typeColor(value)));
+          printKV('Value', stringFromTo(typeColor(prev), typeColor(value, true)));
           console.groupEnd();
           console.log(c.change('),'));
         }
@@ -123,20 +133,20 @@ function iterate(keys, from, to) {
   }
 }
 
-function typeColor(value) {
-  if (value === true || value === 'true') {
+function typeColor(value, raw = false) {
+  if (value === true || (!raw && value === 'true')) {
     return chalk.green('true');
-  } else if (value === false || value === 'false') {
+  } else if (value === false || (!raw && value === 'false')) {
     return chalk.keyword('tomato')('false');
-  } else if (value === 'object') {
+  } else if (!raw && value === 'object') {
     return chalk.keyword('orange')('object');
   } else if (value === 'number') {
     return chalk.keyword('orange')('number');
-  } else if (value === undefined || value === 'undefined') {
+  } else if (value === undefined || (!raw && value === 'undefined')) {
     return chalk.italic.blueBright('undefined');
   } else if (!Number.isNaN(Number(value))) {
     return `${chalk.keyword('orange')(value)}`;
-  } else if (value === 'string') {
+  } else if (!raw && value === 'string') {
     return chalk.greenBright(value);
   }
 
@@ -156,7 +166,7 @@ function stringFromTo(from, to, separator = '--->') {
   return `${from}  ${chalk.greenBright(separator)}  ${to}`;
 }
 
-export default function printStateChanges(from, to) {
+export default function printDifference(from, to) {
   console.log(chalk.yellow('-----------------------------------------------'));
   console.group(chalk.yellow('------------------- Results -------------------'));
   if (from === to) {

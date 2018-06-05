@@ -1,7 +1,7 @@
 /* @flow  */
 
 import type { ProxyDescriptor, ProxyDescriptor$Root } from './types';
-import { PROXY_SYMBOL, MODULE_NAME } from './context';
+import { PROXY_SYMBOL, MODULE_NAME } from './utils/context';
 
 import * as utils from './utils';
 import * as handle from './handlers';
@@ -87,9 +87,9 @@ function proxiedSet<S: Object>(descriptor: ProxyDescriptor<S>, key: any, value: 
   // just ignore this silly request!
   if (key === PROXY_SYMBOL) return true;
 
-  // console.log('Set! ', key, value);
+  const owner = descriptor.copy || descriptor.base;
 
-  const current = Reflect.get(descriptor.copy || descriptor.base, key);
+  const current = Reflect.get(owner, key);
 
   if (current === value) {
     // no change, do nothing
@@ -110,7 +110,7 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
   const { parent } = descriptor;
 
   // console.log('Apply! ', fn, context, args);
-
+  let changed = false;
   const owner = parent.copy || parent.base;
 
   /*
@@ -124,12 +124,9 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
     // to not only call the methods while maintaining context, but
     // we also need to be sure that we end up returning a new proxy
     // if the response is an object for handling of nested values.
-    if (!parent.copy) {
-      parent.copy = owner instanceof Map ? new Map(parent.base) : new Set(parent.base);
-    }
-
+    console.log('Map or Set Apply');
     const method = descriptor.path[descriptor.path.length - 1];
-
+    console.log(method);
     switch (method) {
       case 'has': {
         // non-mutating and non-proxyable response
@@ -146,11 +143,17 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
         break;
       }
       case 'get': {
-        const value = owner.get(args[0]);
+        // console.log('Map Get ', owner);
+        let value = owner.get(args[0]);
         if (typeof value === 'object') {
+          // console.log('Get Proxy!');
           // we need to return a proxy object instead
           // of the normal object while maintaining the
           // nesting for the Map or Set
+          const childDescriptor =
+            descriptor.children[args[0]] || utils.getChildDescriptor(value, args[0], descriptor);
+          descriptor.children[args[0]] = childDescriptor;
+          value = createProxy(childDescriptor);
         }
         return value;
       }
@@ -160,11 +163,10 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
           if (parent.base.size === 0) {
             // we are back to the original value of the Map or Set
             // TODO : How to feed to revert / change for Map/Set
-            // handle.revert()
-          } else {
-            // we are mutating the parent Map/Set for the descriptor
-            // handle.change()
+            handle.revert(parent, parent.path[parent.path.length - 1]);
+            return;
           }
+          changed = true;
         }
         break;
       }
@@ -173,18 +175,22 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
       }
       case 'add': {
         if (owner.has(args[0])) {
-          return () => {};
+          return;
         }
+        changed = true;
+
         break;
       }
       case 'set': {
         // we need to see if the set will cause a mutation
         const current = owner.get(args[0]);
-        console.log(current, args[1]);
+        // console.log(current, args[1]);
         if (current === args[1]) {
           // ? User must be careful here as setting an object on the map
           // ? is potentially not going to be detected
-          return () => {};
+          // return () => {};
+        } else {
+          changed = true;
         }
         break;
       }
@@ -198,6 +204,16 @@ function proxiedApply<S: Object>(fn: Function & ProxyDescriptor<S>, context: any
       }
       default: {
         throw new Error(`[${MODULE_NAME}] | ERROR | apply on Set or Map | The Set or Map method ${method} is not currently supported`);
+      }
+    }
+
+    if (changed && !parent.copy) {
+      if (parent.base instanceof Set || parent.base instanceof Map) {
+        console.log('Copy');
+        parent.copy = utils.shallowCopy(parent.base);
+      } else {
+        // ? Don't support this yet?
+        throw new TypeError(`[${MODULE_NAME}] | ERROR | apply | Unhandled Function ${method}`);
       }
     }
 

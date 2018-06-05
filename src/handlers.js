@@ -2,6 +2,8 @@
 import type { ProxyDescriptor } from './types';
 import * as utils from './utils';
 
+import { RE_STRIP, RE_ARGS } from './utils/context';
+
 /**
  * handle.change handles changing values.  It will propertly setup our root values so that we can
  * identify and maintain changes in our familly.
@@ -31,14 +33,31 @@ export function change<S: Object>(
   }
   if (!descriptor.root.modified.has(descriptor)) {
     descriptor.root.modified.add(descriptor);
-    descriptor.copy = utils.shallowCopy(descriptor.base);
+    if (!descriptor.copy) {
+      // we sometimes have already created the copy when using
+      // Set or Map apply
+      descriptor.copy = utils.shallowCopy(descriptor.base);
+    }
+
     if (!descriptor.isRoot) {
       change(descriptor.parent, descriptor.path[descriptor.path.length - 1], descriptor.copy);
     }
   }
+
   if (descriptor.copy) {
     if (isDelete) {
       delete descriptor.copy[key];
+    } else if (descriptor.base instanceof Map || descriptor.base instanceof Set) {
+      return;
+    } else if (typeof descriptor.base === 'function') {
+      const parentValue = descriptor.parent.copy;
+      if (parentValue instanceof Map) {
+        const args = key.replace(RE_ARGS, '$1');
+        parentValue.set(args, value);
+      }
+    } else if (value instanceof Map || value instanceof Set) {
+      const stripped = key.replace(RE_STRIP, '$1');
+      descriptor.copy[stripped] = value;
     } else {
       descriptor.copy[key] = value;
     }
@@ -56,8 +75,10 @@ export function change<S: Object>(
  * @param {ProxyDescriptor} descriptor
  * @param {string} key
  */
-export function revert<S: Object>(descriptor: ProxyDescriptor<S>, key: string) {
-  if (!descriptor.copy || !descriptor.copy[key]) {
+export function revert<S: Object>(descriptor: ProxyDescriptor<S>, _key: string) {
+  const key = _key.replace(RE_STRIP, '$1');
+  if (descriptor.copy instanceof Map || descriptor.copy instanceof Set) {
+  } else if (!descriptor.copy || !descriptor.copy[key]) {
     throw new Error('reversion error?');
   }
 

@@ -1,10 +1,10 @@
 /* @flow */
 import type { ProxyDescriptor$Root } from './types';
 
-import { MODULE_NAME, PROXY_SYMBOL } from './context';
+import { revokeProxies } from './utils';
+import { MODULE_NAME, PROXY_SYMBOL } from './utils/context';
 import deepProxy from './proxy';
 
-import { revokeProxies } from './utils';
 import * as handle from './handlers';
 
 type Handle$MutateState<S: Object> = (draft: $Shape<S>) => void | $Shape<S>;
@@ -68,8 +68,13 @@ function startStateMutation<S: Object>(base: S, handleMutateState: Handle$Mutate
 function unwindProxyIfNeeded<O: Object>(obj: O): O {
   const descriptor = obj[PROXY_SYMBOL];
   if (descriptor) {
-    const next = unwindProxyIfNeeded(descriptor.copy || descriptor.base);
+    if (typeof descriptor.base === 'function') {
+      return descriptor.base;
+    }
+    const owner = descriptor.copy || descriptor.base;
+    const next = unwindProxyIfNeeded(owner);
     if (descriptor.base === next) {
+      console.log('same');
       handle.revert(descriptor.parent, descriptor.path[descriptor.path.length - 1]);
     }
     return next;
@@ -89,7 +94,18 @@ function cleanAndFreezeObjectDeeply(_obj) {
     }, obj));
   } else if (obj instanceof Set || obj instanceof Map) {
     return maybeFreeze(Array.from(obj).reduce((p, c) => {
-      console.log('Set of Map Reduce! ', c);
+      if (obj instanceof Map) {
+        // map -- we do not currently watch keys of map
+        if (typeof c[1] === 'object') {
+          console.log('clean deep map ', c[1]);
+          p.set(c[0], cleanAndFreezeObjectDeeply(c[1]));
+        }
+      } else if (typeof c === 'object') {
+        // problem here is that sets ordering will be broken
+        // on objects.
+        p.delete(c);
+        p.add(cleanAndFreezeObjectDeeply(c));
+      }
       return p;
     }, obj));
   }

@@ -13,6 +13,8 @@
   "rules": {
     "arrow-parens": ["off"],
     "consistent-return": "off",
+    "import/extensions": "off",
+    "import/prefer-default-export": "off",
     "import/no-unresolved": "off",
     "no-console": "off",
     "no-multi-assign": "off",
@@ -20,7 +22,6 @@
     "promise/always-return": "off",
     "promise/catch-or-return": "error",
     "promise/no-native": "off",
-    "import/extensions": "off",
     "no-await-in-loop": "off",
     "no-underscore-dangle": "off",
     "no-use-before-define": "off",

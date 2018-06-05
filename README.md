@@ -63,8 +63,8 @@ console.log(nextState === state); // false
 #### Difference Example
 
 ```javascript
-import immuta from "./src/immuta";
-import printDifference from "./print-difference";
+import immuta from "immuta";
+import printDifference from "immuta/utils/print-difference";
 
 const state = {
   deep: {
@@ -74,7 +74,7 @@ const state = {
       }
     },
     set: new Set([{ one: "two" }, { two: "three" }]),
-    map: new Map(),
+    map: new Map([["one", { foo: "bar" }]]),
     array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }]
   }
 };
@@ -84,27 +84,23 @@ const next = immuta(
   state,
   // draft is a proxy that will copy-on-write
   draft => {
+    const one = draft.deep.map.get("one");
+    if (one) {
+      one.foo = 1;
+    }
     draft.deep.set.clear();
-    draft.deep.set.add({ one: "two" });
-    draft.deep.array[1].data = { one: "two" };
-    // / do stuff
-    // if (draft.deep.map.size === 0) {
-    //   delete draft.deep.array[1].data;
-    // }
-    draft.deep.array[2].i += 5;
+    draft.deep.set.add({ some: "obj" });
 
-    draft.deep.array.push({
-      i: 6,
-      new: "value"
-    });
-
-    draft.deep.map.set("YoYo", 1);
+    draft.deep.array[2].foo = "bar!";
   },
   // optional callback for change events
   (changedState, changedMap, rollback) => {
     // rollback() will cancel the changes and return original object
     // changedMap is Map { 'path.to.change' => changedValue }
     // changedState is the new state being returned to caller (nextState)
+    changedMap.forEach((v, changedKey) => {
+      console.log("Change: ", changedKey);
+    });
   }
 );
 
@@ -112,51 +108,49 @@ printDifference(state, next);
 ```
 
 ```
+// Results
+Change:  deep
+Change:  deep.map(=> [MAP])
+Change:  deep.map(=> [MAP]).get.(one)
+Change:  deep.map(=> [MAP]).get.(one).foo
+Change:  deep.set(=> [SET])
+Change:  deep.array
+Change:  deep.array.2
+Change:  deep.array.2.foo
 -----------------------------------------------
 ------------------- Results -------------------
   state: {
     deep: {
       foo: { ... Equal },
       set: Set {
-        [add]    =  object { one: 'two' }
+        [add]    =  object { some: 'obj' }
         [delete] =  object { one: 'two' }
         [delete] =  object { two: 'three' }
       },
       map: Map {
-        [create] "YoYo" => (
-          Type  =  undefined  --->  undefined
-          Value =  undefined  --->  1
+        [change] "one" => (
+          Type  =  object  --->  object
+          Value =  [object Object]  --->  [object Object]
+          {
+            foo: (
+              Type  =  string  --->  number
+              Value =  "bar"  --->  1
+            ),
+          }
         ),
       },
       array: [
         0: { ... Equal },
-        1: {
-          i: number
-          data: {
-            one: (
-              Type  =  undefined  --->  string
-              Value =  undefined  --->  "two"
-            ),
-          },
-        },
+        1: { ... Equal },
         2: {
-          i: (
-            Type  =  number  --->  number
-            Value =  3  --->  8
+          i: number
+          foo: (
+            Type  =  undefined  --->  string
+            Value =  undefined  --->  "bar!"
           ),
         },
         3: { ... Equal },
         4: { ... Equal },
-        5: {
-          i: (
-            Type  =  undefined  --->  number
-            Value =  undefined  --->  6
-          ),
-          new: (
-            Type  =  undefined  --->  string
-            Value =  undefined  --->  "value"
-          ),
-        },
       ],
     },
   }

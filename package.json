@@ -27,6 +27,9 @@
   "files": [
     "dist/"
   ],
+  "peerDependencies": {
+    "chalk": "^2.4.1"
+  },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.49",
     "@babel/core": "^7.0.0-beta.49",
@@ -44,11 +47,11 @@
     "cross-env": "^5.1.6",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-flowtype": "^2.48.0",
+    "eslint-plugin-flowtype": "^2.49.3",
     "eslint-plugin-import": "^2.12.0",
     "eslint-plugin-promise": "^3.8.0",
     "flow-bin": "^0.73.0",
-    "flow-copy-source": "^1.3.0",
+    "flow-copy-source": "^2.0.0",
     "flow-typed": "^2.4.0",
     "npm-run-all": "^4.1.3",
     "rimraf": "^2.6.2"
