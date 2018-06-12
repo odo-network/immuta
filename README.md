@@ -18,9 +18,13 @@ npm i --save immuta
 
 ### Flow Coverage
 
-This library aims to provide 100% FlowType Coverage.
+This library aims to provide 100% FlowType Coverage. We provide `.flow.js` files alongside each dist file.
 
 > At this time the FlowTyping may be off a bit due to recent refactoring.
+
+### Performance
+
+While detailed tests need to be established, initial results show that `immuta` will perform closely with `immer` dependent on the complexity of the modifications. `immuta` seems to gain performance on larger/more complex datasets.
 
 ### Reference
 
@@ -124,3 +128,5 @@ Change:  [ 'deep', 'array', '2', 'foo' ]
 -----------------------------------------------
 -----------------------------------------------
 ```
+
+> `printDifference` is a utility library that was written to ensure references and values are changing as expected while testing. It can be used in your projects if you find it useful :)

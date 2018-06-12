@@ -42,6 +42,11 @@ test('reference not equal when deep map clears', t => {
     draft.deep.map.clear();
   });
   t.not(data, next);
+  t.not(data.deep, next.deep);
+  t.not(data.deep.map, next.deep.map);
+  t.is(data.deep.map2, next.deep.map2);
+  t.is(data.deep.set, next.deep.set);
+  t.is(data.deep.set2, next.deep.set2);
   t.notDeepEqual(data, next);
 });
 
@@ -50,6 +55,8 @@ test('reference equal when empty deep map clears', t => {
     draft.deep.map2.clear();
   });
   t.is(data, next);
+  t.is(data.deep, next.deep);
+  t.is(data.deep.map2, next.deep.map2);
   t.deepEqual(data, next);
 });
 
@@ -59,6 +66,8 @@ test('reference equal when empty deep map set then cleared', t => {
     draft.deep.map2.clear();
   });
   t.is(data, next);
+  t.is(data.deep, next.deep);
+  t.is(data.deep.map2, next.deep.map2);
   t.deepEqual(data, next);
 });
 
@@ -67,6 +76,8 @@ test('reference equal when empty deep set clears', t => {
     draft.deep.set2.clear();
   });
   t.is(data, next);
+  t.is(data.deep, next.deep);
+  t.is(data.deep.map2, next.deep.map2);
   t.deepEqual(data, next);
 });
 
