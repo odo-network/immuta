@@ -26,7 +26,6 @@ const next = immuta(
     }
     draft.deep.set.clear();
     draft.deep.set.add({ some: 'obj' });
-
     draft.deep.array[2].foo = 'bar!';
   },
   // optional callback for change events

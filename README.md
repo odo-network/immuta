@@ -4,6 +4,8 @@ Immuta is the son of Immer, a simple immutable library. Immuta was born out of t
 
 > This library is **heavily** inspired by the awesome [immer](https://github.com/mweststrate/immer) library. It adds the "onChange" handler, rollbacks, change snapshots, and support for ES6 Maps & Sets. Most of these changes were built to provide a performant and flexible state management library when used in conjunction with [state-modules](https://github.com/odo-network/state-modules).
 
+> `immuta` should provide a 1-to-1 compatible API with `immer` and can be dropped-in by simply changing the import.
+
 ### Installation
 
 ```

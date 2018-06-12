@@ -4,7 +4,7 @@
   "description": "Simple immutable data library that provides changed data snapshots and rollbacks",
   "main": "dist/immuta.js",
   "scripts": {
-    "build": "cross-env NODE_ENV=production rimraf dist && npm-run-all -p build:**",
+    "build": "cross-env NODE_ENV=production rimraf dist && npm-run-all test -p build:**",
     "build:pubchan:babel": "babel src --out-dir dist",
     "build:pubchan:flow": "flow-copy-source src dist",
     "prepublish": "npm-run-all build",
