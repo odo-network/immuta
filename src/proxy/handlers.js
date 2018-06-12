@@ -104,6 +104,5 @@ export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) 
     // we need to set our base value back on the copy
     // if it still exists
     descriptor.copy[key] = descriptor.base[key];
-    console.log(descriptor.copy);
   }
 }
