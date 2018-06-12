@@ -20,6 +20,8 @@ npm i --save immuta
 
 This library aims to provide 100% FlowType Coverage.
 
+> At this time the FlowTyping may be off a bit due to recent refactoring.
+
 ### Reference
 
 #### immuta `default export`
