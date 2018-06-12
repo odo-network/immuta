@@ -73,16 +73,16 @@ const next = immuta(
 printDifference(state, next);
 ```
 
-```
+```javascript
 // Results
-Change:  deep
-Change:  deep.map(=> [MAP])
-Change:  deep.map(=> [MAP]).get.(one)
-Change:  deep.map(=> [MAP]).get.(one).foo
-Change:  deep.set(=> [SET])
-Change:  deep.array
-Change:  deep.array.2
-Change:  deep.array.2.foo
+Change:  [ 'deep' ]
+Change:  [ 'deep', 'map' ]
+Change:  [ 'deep', 'map', 'one' ]
+Change:  [ 'deep', 'map', 'one', 'foo' ]
+Change:  [ 'deep', 'set' ]
+Change:  [ 'deep', 'array' ]
+Change:  [ 'deep', 'array', '2' ]
+Change:  [ 'deep', 'array', '2', 'foo' ]
 -----------------------------------------------
 ------------------- Results -------------------
   state: {
