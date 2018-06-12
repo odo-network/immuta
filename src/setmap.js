@@ -25,8 +25,8 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
    * Adds values to the Set found at the given key.  If a Set does not yet exist, it
    * will automatically create one for you.
    *
-   * @param {*} key key where the Set can be found
-   * @param {...any[]} values Values to set on the Set
+   * @param {K} key key where the Set can be found
+   * @param {...V[]} values Values to set on the Set
    * @returns {SetMap}
    * @memberof SetMap
    */

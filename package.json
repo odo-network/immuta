@@ -1,6 +1,6 @@
 {
   "name": "immuta",
-  "version": "0.0.2",
+  "version": "0.5.0",
   "description": "Simple immutable data library that provides changed data snapshots and rollbacks",
   "main": "dist/immuta.js",
   "umd:main": "dist/immuta.umd.js",
@@ -9,8 +9,10 @@
   "react-native": "dist/immuta.module.js",
   "types": "./dist/immer.d.ts",
   "scripts": {
-    "test:perf": "babel-node --expose_gc perf/run.js",
-    "try": "babel-node ./quick-try.js"
+    "test:perf": "babel-node perf/run.js",
+    "try": "babel-node ./quick-try.js",
+    "test": "ava",
+    "test:watch": "ava --watch"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
     "@babel/cli": "^7.0.0-beta.49",
     "@babel/core": "^7.0.0-beta.49",
     "@babel/node": "^7.0.0-beta.49",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.49",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0-beta.49",
     "@babel/plugin-transform-runtime": "^7.0.0-beta.49",
     "@babel/preset-env": "^7.0.0-beta.49",
@@ -50,10 +53,26 @@
     "eslint-plugin-flowtype": "^2.49.3",
     "eslint-plugin-import": "^2.12.0",
     "eslint-plugin-promise": "^3.8.0",
-    "flow-bin": "^0.73.0",
+    "flow-bin": "^0.74.0",
     "flow-copy-source": "^2.0.0",
     "flow-typed": "^2.4.0",
     "npm-run-all": "^4.1.3",
     "rimraf": "^2.6.2"
+  },
+  "ava": {
+    "babel": false,
+    "compileEnhancements": false,
+    "verbose": true,
+    "files": [
+      "tests/*.js"
+    ],
+    "sources": [
+      "src/**/*.js",
+      "!dist/*"
+    ],
+    "require": [
+      "@babel/register"
+    ],
+    "tap": true
   }
 }

@@ -30,40 +30,6 @@ This library aims to provide 100% FlowType Coverage.
 
 ```javascript
 import immuta from "immuta";
-
-const state = {
-  deep: {
-    map: new Map(),
-    array: [{ i: 1 }, { i: 2 }, { i: 3 }]
-  }
-};
-
-const nextState = immuta(
-  // provide the state to start with
-  state,
-  // draft is a proxy that will copy-on-write
-  draft => {
-    draft.deep.array[1].data = { one: "two" };
-    /// do stuff
-    if (draft.deep.map.size === 0) {
-      delete draft.deep.array[1].data;
-    }
-  },
-  // optional callback for change events
-  (changedState, changedMap, rollback) => {
-    // rollback() will cancel the changes and return original object
-    // changedMap is Map { 'path.to.change' => changedValue }
-    // changedState is the new state being returned to caller (nextState)
-  }
-);
-
-console.log(nextState === state); // false
-```
-
-#### Difference Example
-
-```javascript
-import immuta from "immuta";
 import printDifference from "immuta/utils/print-difference";
 
 const state = {

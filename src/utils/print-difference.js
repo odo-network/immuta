@@ -52,7 +52,10 @@ function iterate(keys, from, to) {
       });
 
       diff.forEach(([type, k, prev, value]) => {
-        console.group(type, c.change(`${typeColor(String(k))} => (`));
+        if (typeof k === 'object') {
+          k = JSON.stringify(k);
+        }
+        console.group(type, c.change(`${typeColor(k)} => (`));
         printKV('Type', stringFromTo(typeColor(typeof prev), typeColor(typeof value)));
         printKV('Value', stringFromTo(typeColor(prev), typeColor(value)));
         if (typeof value === 'object') {
@@ -65,7 +68,7 @@ function iterate(keys, from, to) {
         console.log(c.change('),'));
       });
     } else if (to instanceof Set) {
-      const diff = from instanceof Set ? new Set() : to;
+      const diff = new Set();
 
       if (from instanceof Set) {
         to.forEach(v => {
@@ -77,6 +80,10 @@ function iterate(keys, from, to) {
           if (!to.has(v)) {
             diff.add([chalk.red('[delete]'.padEnd(c.padstart + 3)), v]);
           }
+        });
+      } else {
+        to.forEach(v => {
+          diff.add([chalk.green('[add]'.padEnd(c.padstart + 3)), v]);
         });
       }
 

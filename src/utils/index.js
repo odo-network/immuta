@@ -1,67 +1,42 @@
 /* @flow */
 
-import type { ProxyDescriptor, ProxyDescriptor$Child, ProxyDescriptor$Root } from '../types';
+import type { ProxyDescriptor } from '../types';
+// import { createChildDescriptor } from '../proxy';
+// import { MODULE_NAME } from './context';
 
-import SetMap from '../setmap';
+export function isType<V>(value: V) {
+  if (value === undefined) return 'undefined';
+  if (value === null) return 'null';
 
-const rootDescriptor = { path: [] };
-
-export const getRootDescriptor = <S: Object>(base: S): ProxyDescriptor$Root<S> => ({
-  base,
-  get parent() {
-    return this;
-  },
-  get root() {
-    return this;
-  },
-  isRoot: true,
-  path: rootDescriptor.path,
-  changed: new Map(),
-  modified: new WeakSet(),
-  changedBy: new SetMap(),
-  revokes: new Set(),
-  children: {},
-});
-
-export const getChildDescriptor = <S: Object>(
-  base: S,
-  _key: string,
-  parent: ProxyDescriptor<S>,
-): ProxyDescriptor$Child<S> => {
-  let key = _key;
-  let path;
-  if (base instanceof Map) {
-    key = `${key}(=> [MAP])`;
-  } else if (base instanceof Set) {
-    key = `${key}(=> [SET])`;
-  } else if (typeof parent.base === 'function') {
-    key = `(${key})`;
+  const type = typeof value;
+  switch (type) {
+    case 'object': {
+      if (value instanceof Map) {
+        return 'map';
+      } else if (value instanceof Set) {
+        return 'set';
+      } else if (Array.isArray(value)) {
+        return 'array';
+      }
+      return 'object';
+    }
+    case 'function':
+    case 'boolean':
+    case 'number':
+    case 'string':
+      return type;
+    default: {
+      console.warn('UNKNOWN TYPE: ', value, type);
+      return 'unknown';
+    }
   }
-  // } else if (typeof parent.base === 'function') {
-  //   const parentKey = parent.path.pop();
-  //   parent.path.push(`${parentKey}(${key})`);
-  //   path = parent.path;
-  //   return parent;
-  // }
-  return {
-    base,
-    parent,
-    root: parent.root,
-    path: path || parent.path.concat(key),
-    children: {},
-  };
-};
-
-const paths = Object.create(null);
-
-export function getPaths<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) {
-  // console.log('Get Paths for Key: ', key);
-  paths.parent = descriptor.path.length ? descriptor.path.join('.') : '';
-  paths.current = `${paths.parent ? `${paths.parent}.` : paths.parent}${key}`;
-  return paths;
 }
 
-export function shallowCopy<O: Object>(obj: O): O | Map<any, any> | Set<any> {
+export function shallowCopy<O: Object>(obj: O): $Shape<O> {
+  if (typeof obj !== 'object' || !obj) {
+    return obj;
+  }
+
   if (obj instanceof Map) {
     return new Map(obj);
   } else if (obj instanceof Set) {
@@ -69,15 +44,55 @@ export function shallowCopy<O: Object>(obj: O): O | Map<any, any> | Set<any> {
   } else if (Array.isArray(obj)) {
     return obj.slice();
   }
-  return Object.assign(Object.getPrototypeOf(obj) ? {} : Object.create(null), obj);
+
+  const proto = Object.getPrototypeOf(obj);
+
+  const newobj = proto ? {} : Object.create(null);
+
+  return Object.assign(newobj, obj);
 }
 
-export function hasProperty(obj: Object, prop: any): boolean {
+export function getValue<+S>(descriptor: ProxyDescriptor<S>, key?: any): S {
+  if (typeof descriptor === 'function') {
+    return descriptor;
+  }
+  const base = hasProperty(descriptor, 'copy') ? descriptor.copy : descriptor.base;
+  if (key) {
+    return Reflect.get(base, key);
+  }
+  return base;
+}
+
+export function is(obj, key, value2) {
+  let value;
+  if (obj instanceof Map) {
+    value = obj.get(key);
+  } else if (obj instanceof Set) {
+    if (obj.has(key) && key === value2) {
+      return true;
+    }
+    return false;
+  } else if (typeof obj === 'object') {
+    value = obj[key];
+  }
+  return Object.is(value, value2);
+}
+
+export function hasProperty<+O: Object>(obj: O, prop: any): boolean {
+  if (obj instanceof Map || obj instanceof Set) {
+    return obj.has(prop);
+  }
   return Object.hasOwnProperty.call(obj, prop);
 }
 
-export function revokeProxies<S: Object>(descriptor: ProxyDescriptor<S>) {
+export function isCustomInspect(key) {
+  return Object.is(String(Symbol.prototype.valueOf.call(key)), 'Symbol(util.inspect.custom)');
+}
+
+export function revokeProxies<+S>(descriptor: ProxyDescriptor<S>): void {
   if (descriptor.root.revokes.size) {
     descriptor.root.revokes.forEach(revoke => revoke());
   }
+  descriptor.root.revoked = true;
+  descriptor.root.revokes.clear();
 }

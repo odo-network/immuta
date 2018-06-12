@@ -13,7 +13,7 @@ function start(test) {
 }
 
 function measure() {
-  // global.gc && global.gc();
+  global.gc && global.gc();
   const now = performance.now();
   const elapsed = now - last;
 
@@ -54,23 +54,25 @@ function run(samples, fns) {
   console.log('  ');
 }
 
-run(500, [
+run(10000, [
   () => {
     start('immer');
     const one = {
       foo: {
         bar: 'baz',
+        baz: [{ one: 'two' }, { two: 'three' }],
       },
     };
 
     const two = immer(one, draftState => {
-      // draftState.foo.bar = 'qux';
-      // draftState.foo = {
-      //   bar: 'baz',
-      // };
       draftState.foo.foo = 'q';
+      draftState.foo.baz.shift();
+      draftState.foo.baz.push({ three: 'four' });
+      draftState.foo.baz.pop();
+      draftState.foo.baz.forEach(e => {
+        e.t = 'one';
+      });
     });
-
     done();
   },
   () => {
@@ -78,19 +80,19 @@ run(500, [
     const one = {
       foo: {
         bar: 'baz',
+        baz: [{ one: 'two' }, { two: 'three' }],
       },
     };
 
-    const two = immuta(
-      one,
-      draftState => {
-        // draftState.foo = {
-        //   bar: 'baz',
-        // };
-        draftState.foo.foo = 'q';
-      },
-      // changed => {},
-    );
+    const two = immuta(one, draftState => {
+      draftState.foo.foo = 'q';
+      draftState.foo.baz.shift();
+      draftState.foo.baz.push({ three: 'four' });
+      draftState.foo.baz.pop();
+      draftState.foo.baz.forEach(e => {
+        e.t = 'one';
+      });
+    });
 
     done();
   },
