@@ -1,6 +1,6 @@
 {
   "name": "immuta",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Simple immutable data library that provides changed data snapshots and rollbacks",
   "main": "dist/immuta.js",
   "scripts": {

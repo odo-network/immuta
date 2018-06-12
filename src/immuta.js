@@ -154,7 +154,9 @@ export default function changeState<+S: Object>(
   }
 
   if (handleStateChange && descriptor.root.changed.size > 0) {
-    handleStateChange(next, descriptor.root.changed, doRollback);
+    // we need to clone the changed map just in case values expected outside of
+    // this context.
+    handleStateChange(next, new Map(descriptor.root.changed), doRollback);
     if (rollback.pop()) {
       next = descriptor.base;
     }
