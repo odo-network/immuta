@@ -62,7 +62,8 @@ const next = immuta(
   // optional callback for change events
   (changedState, changedMap, rollback) => {
     // rollback() will cancel the changes and return original object
-    // changedMap is Map { 'path.to.change' => changedValue }
+    // changedMap is Map { ['path', 'to', 'change'] => changedValue }
+    //  * Note that each value or reference that is changed will have an entry in the map
     // changedState is the new state being returned to caller (nextState)
     changedMap.forEach((v, changedKey) => {
       console.log("Change: ", changedKey);
