@@ -168,14 +168,13 @@ export default function changeState<+S: Object>(
     // once done nesting, revoke proxies so that they are not accidentally used
     // elsewhere within the application (by sending them with promises, etc)
     revokeProxies(descriptor);
-
     descriptor.root.base = undefined;
-    delete descriptor.root.copy;
-    delete descriptor.root._proxy;
+    descriptor.root._proxy = undefined;
     descriptor.root.changed.clear();
     descriptor.root.children.clear();
     descriptor.root.changedBy.clear();
     OBJ_DESCRIPTORS.clear();
+    delete descriptor.root.copy;
   }
 
   return next;

@@ -49,9 +49,9 @@ export function change<+S: Object>(
     childDescriptor = createChildDescriptor(value, key, descriptor);
   } else {
     childDescriptor.copy = value;
-    if (!descriptor.root.modified.has(childDescriptor)) {
-      descriptor.root.modified.add(childDescriptor);
-    }
+    // if (!descriptor.root.modified.has(childDescriptor)) {
+    //   descriptor.root.modified.add(childDescriptor);
+    // }
   }
 
   const { path } = childDescriptor;
@@ -79,7 +79,6 @@ export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) 
   }
 
   if (!childDescriptor) {
-    console.log('Reversion Issue? ', key, descriptor);
     throw new Error('Reversion Fail');
   }
 
@@ -94,7 +93,7 @@ export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) 
     if (utils.hasProperty(descriptor, 'copy')) {
       delete descriptor.copy;
     }
-    descriptor.root.modified.delete(descriptor);
+    // descriptor.root.modified.delete(descriptor);
     if (!descriptor.isRoot) {
       revert(descriptor.parent, descriptor.path[descriptor.path.length - 1]);
     }
@@ -104,4 +103,5 @@ export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) 
     // if it still exists
     descriptor.copy[key] = descriptor.base[key];
   }
+  return true;
 }

@@ -5,6 +5,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Only commit yarn.lock if package lock exists for some reason
+package-lock.json
+
 # Runtime data
 pids
 *.pid

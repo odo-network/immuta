@@ -4,7 +4,7 @@ import type { ProxyDescriptor, ProxyDescriptor$Root, ProxyDescriptor$Child } fro
 import { PROXY_SYMBOL, MODULE_NAME, OBJ_DESCRIPTORS } from '../utils/context';
 import SetMap from '../setmap';
 
-import * as handle from './handlers';
+import { change, revert } from './handlers';
 import * as utils from '../utils';
 
 const staticObjs = {
@@ -17,37 +17,27 @@ const staticObjs = {
 };
 
 const rootDescriptor = {
-  isRoot: true,
-  revoked: false,
-  base: undefined,
   get parent() {
     return this;
   },
   get root() {
     return this;
   },
+
+  isRoot: true,
+  revoked: false,
+  base: undefined,
+  _proxy: undefined,
   get proxy() {
     this._proxy = this._proxy || createProxy(this);
     return this._proxy;
   },
-  get path() {
-    return staticObjs.path;
-  },
-  get modified() {
-    return staticObjs.modified;
-  },
-  get revokes() {
-    return staticObjs.revokes;
-  },
-  get changed() {
-    return staticObjs.changed;
-  },
-  get children() {
-    return staticObjs.children;
-  },
-  get changedBy() {
-    return staticObjs.changedBy;
-  },
+  path: staticObjs.path,
+  modified: staticObjs.modified,
+  revokes: staticObjs.revokes,
+  changed: staticObjs.changed,
+  children: staticObjs.children,
+  changedBy: staticObjs.changedBy,
 };
 
 /**
@@ -120,12 +110,8 @@ export const createChildDescriptor = <+S>(
       children = children || new Map();
       return children;
     },
-    get parent() {
-      return parent;
-    },
-    get root() {
-      return parent.root;
-    },
+    parent,
+    root: parent.root,
     get proxy() {
       if (!isPotentialParent) return utils.getValue(this);
       if (!proxy) {
@@ -218,8 +204,7 @@ function set<+S>(descriptor: ProxyDescriptor<S>, key: any, value: any) {
   if (utils.getValue(descriptor, key) === value) {
     return true;
   }
-  handle.change(descriptor, key, value);
-  return true;
+  return change(descriptor, key, value);
 }
 
 function has<+S>(descriptor: ProxyDescriptor<S>, key: any) {
@@ -330,7 +315,7 @@ function apply<F: Function>(fn: F, context: any, args: any[], proxy) {
         // current owner will change to an instance without any values.
         if (parent.base.size === 0) {
           // we are back to the original value of the Map or Set
-          handle.revert(parent, parent.path[parent.path.length - 1]);
+          revert(parent, parent.path[parent.path.length - 1]);
           return;
         }
         willChange = true;
@@ -379,7 +364,7 @@ function apply<F: Function>(fn: F, context: any, args: any[], proxy) {
   const response = Reflect.apply(fn, owner, args);
 
   if (willChange) {
-    handle.change(parent.parent, parent.path[parent.path.length - 1], owner);
+    change(parent.parent, parent.path[parent.path.length - 1], owner);
   }
 
   if (copyResponse && typeof response === 'object') {
@@ -397,7 +382,7 @@ function deleteProperty<+S>(descriptor: ProxyDescriptor<S>, key: any) {
   const value = utils.getValue(descriptor);
 
   if (utils.hasProperty(value, key)) {
-    handle.change(descriptor, key, undefined, true);
+    change(descriptor, key, undefined, true);
   }
 
   return true;
