@@ -78,3 +78,16 @@ test('values are deeply frozen when returned', t => {
     next.deep.bar = 'another';
   });
 });
+
+test('setting object then retrieving object and mutating works as expected', t => {
+  const next = immuta(data, draft => {
+    draft.deep.foo = {
+      one: 'two'
+    }
+
+    draft.deep.foo.two = 'three';
+  });
+  t.not(data, next);
+  t.notDeepEqual(data, next);
+  
+});

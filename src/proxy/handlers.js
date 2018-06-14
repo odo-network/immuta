@@ -24,7 +24,7 @@ export function change<+S: Object>(
     return revert(descriptor, key);
   }
 
-  if (!utils.hasProperty(descriptor, 'copy') && !descriptor.root.modified.has(descriptor)) {
+  if (!utils.hasProperty(descriptor, 'copy')) {
     // we sometimes have already created the copy when using
     // Set or Map apply
     descriptor.copy = utils.shallowCopy(descriptor.base);
@@ -49,10 +49,9 @@ export function change<+S: Object>(
     childDescriptor = createChildDescriptor(value, key, descriptor);
   } else {
     childDescriptor.copy = value;
-  }
-
-  if (!descriptor.root.modified.has(childDescriptor)) {
-    descriptor.root.modified.add(childDescriptor);
+    if (!descriptor.root.modified.has(childDescriptor)) {
+      descriptor.root.modified.add(childDescriptor);
+    }
   }
 
   const { path } = childDescriptor;

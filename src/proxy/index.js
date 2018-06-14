@@ -422,14 +422,18 @@ function getOwnPropertyDescriptor<+S>(descriptor: ProxyDescriptor<S>, key: any) 
   return propDescriptor;
 }
 
-function construct<+S>(desccriptor: ProxyDescriptor<S>, args: any[]) {
-  return Reflect.construct(utils.getValue(descriptor), args);
+// TODO - This probably needs to be revisited
+function construct<+S>(descriptor: ProxyDescriptor<S>, args: any[]) {
+  const value = utils.getValue(descriptor);
+  if (typeof value === 'function') {
+    return Reflect.construct(value, args);
+  }
 }
 
 function preventExtensions() {
   return true;
 }
 
-function isExtensible<+S>(descriptor: ProxyDescriptor<S>) {
+function isExtensible(/* descriptor: ProxyDescriptor<S> */) {
   return true;
 }

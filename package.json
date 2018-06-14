@@ -4,12 +4,13 @@
   "description": "Simple immutable data library that provides changed data snapshots and rollbacks",
   "main": "dist/immuta.js",
   "scripts": {
-    "build": "cross-env NODE_ENV=production rimraf dist && npm-run-all test -p build:**",
+    "build": "cross-env NODE_ENV=production rimraf dist && npm-run-all -p test lint -p build:**",
     "build:pubchan:babel": "babel src --out-dir dist",
     "build:pubchan:flow": "flow-copy-source src dist",
     "prepublish": "npm-run-all build",
     "test:perf": "babel-node perf/run.js",
     "try": "babel-node ./quick-try.js",
+    "lint": "eslint src",
     "test": "ava",
     "test:watch": "ava --watch"
   },
