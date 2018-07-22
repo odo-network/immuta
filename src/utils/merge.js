@@ -56,22 +56,21 @@ mergeWithDraft.at = function mergeWithDraftAtPath(_draft, _path, obj, config) {
 
   for (const key of path) {
     i += 1;
-    if (key === Map || key === Set) {
-      continue;
-    }
-    draftKey = key;
-    if (base instanceof Map) {
-      base = base.get(key);
-      draftType = 'map';
-    } else {
-      base = base[key];
-      draftType = 'object';
-    }
-    if (typeof base !== 'object') {
-      areAddingNewKeys = true;
-      break;
-    } else {
-      draft = getDraftChild(draftType, draft, key);
+    if (key !== Map || key !== Set) {
+      draftKey = key;
+      if (base instanceof Map) {
+        base = base.get(key);
+        draftType = 'map';
+      } else {
+        base = base[key];
+        draftType = 'object';
+      }
+      if (typeof base !== 'object') {
+        areAddingNewKeys = true;
+        break;
+      } else {
+        draft = getDraftChild(draftType, draft, key);
+      }
     }
   }
 
@@ -244,26 +243,22 @@ function deepMerge(baseValue, newValue, key, parentDraft, config, parentType = '
 }
 
 function mergeDraftAtLevel(base, obj, draft, config?: MergerConfig = defaultMergerConfig) {
-  if (Array.isArray(obj)) {
-    obj.forEach(value => {});
-  } else {
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const baseValue = base[key];
-        const newValue = obj[key];
-        if (!config.deep) {
-          // when comparing shallow we only care if the values match
-          if (baseValue !== newValue) {
-            draft[key] = newValue;
-          }
-        } else if (typeof newValue === 'object') {
-          // when comparing deep we need to identify objects of
-          // various types and iterate them to generate our
-          // new value
-          deepMerge(baseValue, newValue, key, draft, config);
-        } else if (baseValue !== newValue) {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const baseValue = base[key];
+      const newValue = obj[key];
+      if (!config.deep) {
+        // when comparing shallow we only care if the values match
+        if (baseValue !== newValue) {
           draft[key] = newValue;
         }
+      } else if (typeof newValue === 'object') {
+        // when comparing deep we need to identify objects of
+        // various types and iterate them to generate our
+        // new value
+        deepMerge(baseValue, newValue, key, draft, config);
+      } else if (baseValue !== newValue) {
+        draft[key] = newValue;
       }
     }
   }

@@ -13,7 +13,8 @@ function getValue(value, key) {
   if (!value) return value;
   if (value instanceof Map) {
     return value.get(key);
-  } else if (value instanceof Set) {
+  }
+  if (value instanceof Set) {
     return key;
   }
   return value[key];
@@ -143,23 +144,30 @@ function iterate(keys, from, to) {
 function typeColor(value, raw = false) {
   if (value === true || (!raw && value === 'true')) {
     return chalk.green('true');
-  } else if (value === false || (!raw && value === 'false')) {
+  }
+  if (value === false || (!raw && value === 'false')) {
     return chalk.keyword('tomato')('false');
-  } else if (!raw && value === 'object') {
+  }
+  if (!raw && value === 'object') {
     return chalk.keyword('orange')('object');
-  } else if (value === 'number') {
+  }
+  if (value === 'number') {
     return chalk.keyword('orange')('number');
-  } else if (value === undefined || (!raw && value === 'undefined')) {
+  }
+  if (value === undefined || (!raw && value === 'undefined')) {
     return chalk.italic.blueBright('undefined');
-  } else if (!Number.isNaN(Number(value))) {
+  }
+  if (!Number.isNaN(Number(value))) {
     return `${chalk.keyword('orange')(value)}`;
-  } else if (!raw && value === 'string') {
+  }
+  if (!raw && value === 'string') {
     return chalk.greenBright(value);
   }
 
   if (typeof value === 'string') {
     return chalk.green(`"${value}"`);
-  } else if (typeof value === 'object') {
+  }
+  if (typeof value === 'object') {
     return value;
   }
   return chalk.keyword('beige')(value);

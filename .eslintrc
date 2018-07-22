@@ -14,6 +14,7 @@
     "arrow-parens": ["off"],
     "consistent-return": "off",
     "import/extensions": "off",
+    "import/no-cycle": "off",
     "import/prefer-default-export": "off",
     "import/no-unresolved": "off",
     "no-console": "off",

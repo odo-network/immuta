@@ -21,6 +21,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
   add(key: K, ...values: V[]) {
     return this.addSet(key, ...values);
   }
+
   /**
    * Adds values to the Set found at the given key.  If a Set does not yet exist, it
    * will automatically create one for you.
@@ -44,6 +45,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
     values.forEach(v => set.add(v));
     return this;
   }
+
   /**
    * Adds values to the Map found at the given key.  If a Map does not yet exist, it
    * will automatically create one for you.
@@ -95,6 +97,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
   hasSet(key: K, ...args: V[]) {
     return this.hasMap(key, ...args);
   }
+
   /**
    * Checks if all the given values exist on the key's Set or Map.  Returns a boolean
    * if all `values` match.
@@ -115,6 +118,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
     }
     return false;
   }
+
   /**
    * Get the size of a SetMap by its key.  Will provide the `.size` property of the Map or Set
    * at the given key.  If it doesn't exist, 0 will be returned.
@@ -126,6 +130,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
   sizeSet(key: K) {
     return this.sizeMap(key);
   }
+
   /**
    * Get the size of a SetMap by its key.  Will provide the `.size` property of the Map or Set
    * at the given key.  If it doesn't exist, 0 will be returned.
@@ -145,6 +150,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
     }
     return 0;
   }
+
   /**
    * Removes n number of values if they exist on the Map or Set.
    * Each value should be a key for Map or the value itself for
@@ -157,6 +163,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
   removeSet(key: K, ...args: V[]) {
     return this.remove(key, ...args);
   }
+
   /**
    * Removes n number of values if they exist on the Map or Set.
    * Each value should be a key for Map or the value itself for
@@ -169,6 +176,7 @@ export default class SetMap<K, V, V2 = empty> extends Map<K, Set<V> | Map<V, V2>
   removeMap(key: K, ...args: V[]) {
     return this.remove(key, ...args);
   }
+
   /**
    * Removes n number of values if they exist on the Map or Set.
    * Each value should be a key for Map or the value itself for
