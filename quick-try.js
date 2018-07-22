@@ -20,10 +20,8 @@ const next = immuta(
   state,
   // draft is a proxy that will copy-on-write
   draft => {
-    draft.deep.foo.foo = {
-      one: 1,
-    };
-    draft.deep.foo.foo.two = 2;
+    const val = draft.deep.map.get('one');
+    foo.baz = 'qux';
   },
   // optional callback for change events
   (changedState, changedMap, rollback) => {

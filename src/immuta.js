@@ -11,9 +11,10 @@ import * as handle from './proxy/handlers';
 
 type ImmutaConfig = {|
   freeze: boolean,
+  base: void | Object,
 |};
 
-const config: ImmutaConfig = {
+export const config: ImmutaConfig = {
   freeze: true,
 };
 /*
@@ -26,7 +27,11 @@ const rollback: boolean[] = [];
 
 export function setImmutaConfig<K: $Keys<ImmutaConfig>>(key: K, value: $ElementType<ImmutaConfig, K>) {
   if (!Object.keys(config).includes(key)) {
-    throw new TypeError(`[${MODULE_NAME}] | ERROR | setConfig | key ${key} is not a known config value: ${Object.keys(config).join(', ')}`);
+    throw new TypeError(
+      `[${MODULE_NAME}] | ERROR | setConfig | key ${key} is not a known config value: ${Object.keys(config).join(
+        ', ',
+      )}`,
+    );
   }
   config[key] = value;
 }
@@ -71,36 +76,47 @@ function cleanAndFreezeObjectDeeply<+O>(_obj: O): O {
     return obj;
   }
   if (Array.isArray(obj)) {
-    return maybeFreeze(obj.reduce((p, c, i) => {
-      if (c && typeof c === 'object') {
-        p[i] = cleanAndFreezeObjectDeeply(p[i]);
-      }
-      return p;
-    }, obj));
-  } else if (obj instanceof Set || obj instanceof Map) {
-    return maybeFreeze(Array.from(obj).reduce((p, c) => {
-      if (obj instanceof Map) {
-        // map -- we do not currently watch keys of map
-        p.set(c[0], cleanAndFreezeObjectDeeply(c[1]));
-      } else if (typeof c === 'object') {
-        // problem here is that sets ordering will be broken
-        // on objects.
-        const cleaned = cleanAndFreezeObjectDeeply(c);
-        if (cleaned !== c) {
-          p.delete(c);
+    return maybeFreeze(
+      obj.reduce((p, c, i) => {
+        if (c && typeof c === 'object') {
+          p[i] = cleanAndFreezeObjectDeeply(p[i]);
         }
-        p.add(cleaned);
+        return p;
+      }, obj),
+    );
+  }
+  if (obj instanceof Set || obj instanceof Map) {
+    return maybeFreeze(
+      Array.from(obj).reduce((p, c) => {
+        if (obj instanceof Map) {
+          // map -- we do not currently watch keys of map
+          p.set(c[0], cleanAndFreezeObjectDeeply(c[1]));
+        } else if (typeof c === 'object') {
+          // problem here is that sets ordering will be broken
+          // on objects.
+          const cleaned = cleanAndFreezeObjectDeeply(c);
+          if (cleaned !== c) {
+            p.delete(c);
+          }
+          p.add(cleaned);
+        }
+        return p;
+      }, obj),
+    );
+  }
+  if (Object.isFrozen(obj)) {
+    // if this object hasnt changed and is frozen, we can return it directly
+    return obj;
+  }
+  return maybeFreeze(
+    Object.keys(obj).reduce((p, c) => {
+      const current = p[c];
+      if (current && typeof current === 'object') {
+        p[c] = cleanAndFreezeObjectDeeply(current);
       }
       return p;
-    }, obj));
-  }
-  return maybeFreeze(Object.keys(obj).reduce((p, c) => {
-    const current = p[c];
-    if (current && typeof current === 'object') {
-      p[c] = cleanAndFreezeObjectDeeply(current);
-    }
-    return p;
-  }, obj));
+    }, obj),
+  );
 }
 
 function validateArguments(base, handleMutateState, handleStateChange) {
@@ -109,7 +125,9 @@ function validateArguments(base, handleMutateState, handleStateChange) {
   } else if (typeof handleMutateState !== 'function') {
     throw new Error(`[${MODULE_NAME}] | ERROR | changeState | handleMutateState must be a function`);
   } else if (handleStateChange && typeof handleStateChange !== 'function') {
-    throw new Error(`[${MODULE_NAME}] | ERROR | changeState | When defined, handleStateChangeEvent [3] must be a function`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | changeState | When defined, handleStateChangeEvent [3] must be a function`,
+    );
   }
 }
 

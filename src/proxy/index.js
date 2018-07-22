@@ -149,11 +149,10 @@ function get<S>(_descriptor: ProxyDescriptor<S>, key: any) {
   const descriptor = _descriptor;
   if (key === PROXY_SYMBOL) {
     return typeof descriptor === 'function' ? OBJ_DESCRIPTORS.get(descriptor) : descriptor;
-    // $FlowIgnore
-  } else if (typeof key === 'symbol') {
-    if (utils.isCustomInspect(key)) {
-      return () => OBJ_DESCRIPTORS.get(descriptor) || utils.getValue(descriptor);
-    }
+  }
+  // $FlowIgnore
+  if (typeof key === 'symbol' && utils.isCustomInspect(key)) {
+    return () => OBJ_DESCRIPTORS.get(descriptor) || utils.getValue(descriptor);
   }
 
   const value = utils.getValue(descriptor);

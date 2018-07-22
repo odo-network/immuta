@@ -1,32 +1,47 @@
 /* @flow */
 
-import type { ProxyDescriptor } from '../types';
+import type { PossibleValueTypes, ProxyDescriptor } from '../types';
 // import { createChildDescriptor } from '../proxy';
-// import { MODULE_NAME } from './context';
+import { PROXY_SYMBOL } from './context';
 
-export function isType<V>(value: V) {
+export function isType<V>(value: V): PossibleValueTypes {
   if (value === undefined) return 'undefined';
   if (value === null) return 'null';
 
   const type = typeof value;
   switch (type) {
     case 'object': {
+      if (Array.isArray(value)) {
+        return 'array';
+      }
       if (value instanceof Map) {
         return 'map';
-      } else if (value instanceof Set) {
+      }
+      if (value instanceof Set) {
         return 'set';
-      } else if (Array.isArray(value)) {
-        return 'array';
+      }
+      if (value instanceof RegExp) {
+        return 'regexp';
+      }
+      if (value instanceof Date) {
+        return 'date';
       }
       return 'object';
     }
+    case 'number': {
+      if (Number.isNaN(value)) {
+        return 'nan';
+      }
+      return 'number';
+    }
+    case 'symbol':
     case 'function':
     case 'boolean':
-    case 'number':
     case 'string':
+    case 'undefined':
       return type;
     default: {
-      console.warn('UNKNOWN TYPE: ', value, type);
+      console.warn('[IMMUTA]: UNKNOWN TYPE: ', value, type);
       return 'unknown';
     }
   }
@@ -39,9 +54,11 @@ export function shallowCopy<O: Object>(obj: O): $Shape<O> {
 
   if (obj instanceof Map) {
     return new Map(obj);
-  } else if (obj instanceof Set) {
+  }
+  if (obj instanceof Set) {
     return new Set(obj);
-  } else if (Array.isArray(obj)) {
+  }
+  if (Array.isArray(obj)) {
     return obj.slice();
   }
 
@@ -61,6 +78,11 @@ export function getValue<+S>(descriptor: ProxyDescriptor<S>, key?: any): S {
     return Reflect.get(base, key);
   }
   return base;
+}
+
+export function getProxiedValue(proxy) {
+  const descriptor = proxy[PROXY_SYMBOL];
+  return getValue(descriptor);
 }
 
 export function is(obj, key, value2) {

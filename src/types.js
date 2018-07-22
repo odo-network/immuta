@@ -46,5 +46,22 @@ export type ProxyDescriptor$Child<S> = {|
   +parent: ProxyDescriptor<*>,
 |};
 
+export type PossibleValueTypes =
+  | 'undefined'
+  | 'null'
+  | 'array'
+  | 'map'
+  | 'set'
+  | 'regexp'
+  | 'object'
+  | 'date'
+  | 'number'
+  | 'nan'
+  | 'symbol'
+  | 'function'
+  | 'boolean'
+  | 'string'
+  | 'unknown';
+
 // Any kind of ProxyDescriptor
 export type ProxyDescriptor<S> = ProxyDescriptor$Root<S> | ProxyDescriptor$Child<S>;
