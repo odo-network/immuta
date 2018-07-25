@@ -1,52 +1,25 @@
 import immuta, { mergeWithDraft } from './src';
 import printDifference from './src/utils/print-difference';
 
+const k1 = { foo: 1 };
+const k2 = { bar: 2 };
+const k3 = { baz: 3 };
+
 const state = {
-  deep: {
-    foo: {
-      bar: {
-        baz: true,
-      },
-    },
-    set: new Set([{ one: 'two' }, { two: 'three' }]),
-    map: new Map([['one', { foo: 'bar' }]]),
-    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }],
-  },
+  map: new WeakMap([[k1, k2]]),
 };
 
-const next = immuta(
-  // provide the state to start with
-  state,
-  // draft is a proxy that will copy-on-write
-  draft => {
-    mergeWithDraft(draft, {
-      deep: {
-        foo: {
-          bar: {
-            foo: true,
-          },
-        },
-        set: new Set([{ three: 'four' }]),
-        map: new Map([['one', { bar: 'baz' }]]),
-        array: [{ foo: 'bar' }],
-      },
-    });
-    mergeWithDraft.at(draft, 'deep.array.3.deeper.path.than.it.had', { at: 'merge' });
-    mergeWithDraft.at(draft, ['deep', 'map', { object: 'key' }, 'also', 'works'], { foo: 'bar' });
-  },
-  // optional callback for change events
-  (changedState, changedMap, rollback) => {
-    // rollback() will cancel the changes and return original object
-    // changedMap is Map { ['path', 'to', 'change'] => changedValue }
-    //  * Note that each value or reference that is changed will have an entry in the map
-    // changedState is the new state being returned to caller (nextState)
-    changedMap.forEach((v, changedKey) => {
-      console.log('Change: ', changedKey);
-    });
-  },
-);
+const next = immuta(state, draft => {
+  mergeWithDraft.at(draft, ['map', k1], k3);
+});
 
 // printDifference(state, next);
+
+console.log(state.map.get(k1));
+
+console.log(next);
+
+console.log(next.map.get(k1));
 // console.log(`
 //   --- RESULTS ---
 

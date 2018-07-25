@@ -28,11 +28,20 @@ export function change<+S, K>(descriptor: ProxyDescriptor<S>, key: K, value: S, 
     }
   }
 
-  if (descriptor.copy instanceof Map) {
+  if (descriptor.copy instanceof Map || descriptor.copy instanceof WeakMap) {
     if (isDelete) {
       descriptor.copy.delete(key);
     } else {
       descriptor.copy.set(key, value);
+    }
+  } else if (descriptor.copy instanceof Set) {
+    if (isDelete) {
+      descriptor.copy.delete(key);
+    } else {
+      const keyDraft = descriptor.children.get(key);
+      descriptor.children.delete(key);
+      descriptor.copy.delete(key);
+      descriptor.copy.add(keyDraft.copy);
     }
   } else {
     Reflect.set(descriptor.copy, key, value);
@@ -99,6 +108,7 @@ export function revert<+S, K>(descriptor: ProxyDescriptor<S>, key: K) {
         break;
       }
       case 'set': {
+        console.log('set');
         break;
       }
       default: {

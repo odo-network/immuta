@@ -5,6 +5,8 @@ import type { PossibleValueTypes, ProxyDescriptor } from '../types';
 import { PROXY_SYMBOL, MODULE_NAME } from './context';
 import { change } from '../proxy/handlers';
 
+import WeakMapProxy from './WeakMapProxy';
+
 export function isType<V>(value: V): PossibleValueTypes {
   if (value === undefined) return 'undefined';
   if (value === null) return 'null';
@@ -15,7 +17,7 @@ export function isType<V>(value: V): PossibleValueTypes {
       if (Array.isArray(value)) {
         return 'array';
       }
-      if (value instanceof Map) {
+      if (value instanceof Map || value instanceof WeakMap) {
         return 'map';
       }
       if (value instanceof Set) {
@@ -55,6 +57,11 @@ export function shallowCopy<O: Object>(obj: O): $Shape<O> {
 
   if (obj instanceof Map) {
     return new Map(obj);
+  }
+  if (obj instanceof WeakMap) {
+    // we cant access the keys of the object so a clone
+    // can only be a brand new weak map
+    return new WeakMapProxy(obj);
   }
   if (obj instanceof Set) {
     return new Set(obj);
@@ -165,7 +172,7 @@ export function cleanChildren<+S: Object>(descriptor: void | ProxyDescriptor<S>)
 
 export function is<+O: Object, K, V>(obj: O, key: K, value2: V): boolean {
   let value;
-  if (obj instanceof Map) {
+  if (obj instanceof Map || obj instanceof WeakMap) {
     value = obj.get(key);
   } else if (obj instanceof Set) {
     if (obj.has(key) && key === value2) {
@@ -180,7 +187,7 @@ export function is<+O: Object, K, V>(obj: O, key: K, value2: V): boolean {
 
 export function hasProperty<+O: Object, K>(obj: O, prop: K): boolean {
   if (typeof obj !== 'object') return false;
-  if (obj instanceof Map || obj instanceof Set) return obj.has(prop);
+  if (obj instanceof Map || obj instanceof Set || obj instanceof WeakMap) return obj.has(prop);
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 

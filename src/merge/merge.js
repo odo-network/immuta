@@ -35,6 +35,12 @@ function getExpectedType(pathType) {
     case Object: {
       return 'object';
     }
+    case WeakMap: {
+      return 'weakmap';
+    }
+    case WeakSet: {
+      return 'weakset';
+    }
     default: {
       return isType(pathType);
     }
@@ -206,6 +212,14 @@ function prepareMergeAtPath(_descriptor, _path, target) {
           }
           case 'set': {
             setDescriptorChild(descriptor, key, new Set());
+            break;
+          }
+          case 'weakmap': {
+            setDescriptorChild(descriptor, key, new WeakMap());
+            break;
+          }
+          case 'weakset': {
+            setDescriptorChild(descriptor, key, new WeakSet());
             break;
           }
           default: {
