@@ -1,5 +1,5 @@
 import bench from '../run';
-import immuta from '../../.junk/immuta';
+import immuta from '../../src/immuta';
 import immer from '../../.junk/src/immer';
 
 const obj = {

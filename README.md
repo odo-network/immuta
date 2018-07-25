@@ -150,6 +150,19 @@ This can get especially expensive when the merge ends up not making changes to t
 - `mergeWithDraft.shallow` - Shallow merge draft with another object
 - `mergeWithDraft.shallow.at` - Shallow merge draft with another object at a given path.
 
+##### Type Signatures
+
+`mergeWithDraft` has two function type signatures. Direct merge and path-based (at) merging.
+
+```javascript
+type MergeWithDraft = (draft: Immuta$Draft, ...targets: any[]) => any;
+type MergeWithDraftAt = (
+  draft: Immuta$Draft,
+  path: Immuta$MergePath,
+  ...targets: any[]
+) => void;
+```
+
 ##### Example
 
 ```javascript

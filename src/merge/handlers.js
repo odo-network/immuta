@@ -59,6 +59,7 @@ function mergeArrays<+S: Object, +C: MergerConfig>(descriptor: ProxyDescriptor<S
     throw new Error('Proxy Not Found in mergeArrays?');
   }
   target.forEach((targetValue, targetKey) => {
+    // $FlowIgnore
     const sourceValue = source[targetKey];
     if (config.deep && typeof targetValue === 'object' && typeof sourceValue === 'object') {
       mergeChild(descriptor, targetKey, targetValue, config);
@@ -69,18 +70,18 @@ function mergeArrays<+S: Object, +C: MergerConfig>(descriptor: ProxyDescriptor<S
 }
 
 function mergeMaps<+S: Object, +C: MergerConfig>(descriptor: ProxyDescriptor<S>, target: S, config: C) {
-  console.log('Merge Maps');
   const sourceValue = getValue(descriptor);
   target.forEach((targetValue, targetKey) => {
     const sourceChildValue = sourceValue.get(targetKey);
     if (!config.deep || (typeof targetValue !== 'object' || typeof sourceChildValue !== 'object')) {
+      // $FlowIgnore
       return descriptor.proxy.set(targetKey, targetValue);
     }
     mergeChild(descriptor, targetKey, targetValue, config);
   });
 }
 
-function mergeSets<+S: Object, +C: MergerConfig>(descriptor: ProxyDescriptor<S>, target: S, config: C) {
+function mergeSets<+S: Object>(descriptor: ProxyDescriptor<S>, target: S) {
   // sets need to be handled specially as we do not have any
   // method for retrieving a set value (since its a unique ref)
   const source = getValue(descriptor);
@@ -117,7 +118,7 @@ export function handleMergeIntoDescriptor<+S: Object, +C: MergerConfig>(
       return mergeMaps(descriptor, target, config);
     }
     case 'set': {
-      return mergeSets(descriptor, target, config);
+      return mergeSets(descriptor, target);
     }
     default: {
       break;

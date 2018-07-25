@@ -119,7 +119,6 @@ function getDescriptorAtPath(baseDescriptor, path) {
       // type.  If it doesn't, we will replace starting
       // here within our merge.
       if (pathType !== nextDescriptor.type) {
-        console.log('Mismatch Type: ', pathType, nextDescriptor.type);
         break;
       }
     }
@@ -161,7 +160,6 @@ function getDescriptorAtPath(baseDescriptor, path) {
 function prepareMergeAtPath(_descriptor, _path, target) {
   getDescriptorAtPath(_descriptor, _path);
   const { path } = pathResult;
-  console.log(path);
   if (path && path.length) {
     // the source object does not contain mergeable keys starting at
     // the path received and we will need to add them to the draft
@@ -191,7 +189,6 @@ function prepareMergeAtPath(_descriptor, _path, target) {
         key = route;
       }
       if (i === path.length - 1) {
-        console.log('Set ', key, target);
         setDescriptorChild(descriptor, key, target);
       } else {
         switch (pathType) {

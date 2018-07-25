@@ -46,18 +46,18 @@ const next = immuta(
   },
 );
 
-printDifference(state, next);
-console.log(`
-  --- RESULTS ---
+// printDifference(state, next);
+// console.log(`
+//   --- RESULTS ---
 
-  Is Equal?  ${next === state}
+//   Is Equal?  ${next === state}
 
-  Old Value:
-  ${JSON.stringify(state, null, 2)}
+//   Old Value:
+//   ${JSON.stringify(state, null, 2)}
 
-  New Value:
-  ${JSON.stringify(next, null, 2)}
-`);
+//   New Value:
+//   ${JSON.stringify(next, null, 2)}
+// `);
 
 // const expected = {
 //   one: {
@@ -73,7 +73,3 @@ console.log(`
 //     }
 //   }
 // }
-
-console.log(next === state);
-console.log(next);
-console.log(next.one);
