@@ -1,47 +1,52 @@
 import immuta, { mergeWithDraft } from './src';
-
-const kv = {
-  my: 'key',
-};
-
-const kv2 = {
-  another: 'key',
-};
-
-const foo = {
-  foo: 'boo!',
-};
-
-const bar = {
-  bar: 'yep!',
-};
+import printDifference from './src/utils/print-difference';
 
 const state = {
-  one: {
-    two: {
-      map: new Map([[kv, kv2], ['hello', 'world']]),
-      foo: 'bar',
+  deep: {
+    foo: {
+      bar: {
+        baz: true,
+      },
     },
-  },
-};
-
-const update = {
-  two: {
-    lets: 'go',
-    map: new Map([[kv, foo], [bar, foo], ['hello', 'world!']]),
+    set: new Set([{ one: 'two' }, { two: 'three' }]),
+    map: new Map([['one', { foo: 'bar' }]]),
+    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }],
   },
 };
 
 const next = immuta(
+  // provide the state to start with
   state,
+  // draft is a proxy that will copy-on-write
   draft => {
-    mergeWithDraft(draft.one, update);
+    mergeWithDraft(draft, {
+      deep: {
+        foo: {
+          bar: {
+            foo: true,
+          },
+        },
+        set: new Set([{ three: 'four' }]),
+        map: new Map([['one', { bar: 'baz' }]]),
+        array: [{ foo: 'bar' }],
+      },
+    });
+    mergeWithDraft.at(draft, 'deep.array.3.deeper.path.than.it.had', { at: 'merge' });
+    mergeWithDraft.at(draft, ['deep', 'map', { object: 'key' }, 'also', 'works'], { foo: 'bar' });
   },
-  (nextState, changes) => {
-    console.log('Changes: ', changes);
+  // optional callback for change events
+  (changedState, changedMap, rollback) => {
+    // rollback() will cancel the changes and return original object
+    // changedMap is Map { ['path', 'to', 'change'] => changedValue }
+    //  * Note that each value or reference that is changed will have an entry in the map
+    // changedState is the new state being returned to caller (nextState)
+    changedMap.forEach((v, changedKey) => {
+      console.log('Change: ', changedKey);
+    });
   },
 );
 
+printDifference(state, next);
 console.log(`
   --- RESULTS ---
 

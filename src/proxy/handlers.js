@@ -44,14 +44,9 @@ export function change<+S, K>(descriptor: ProxyDescriptor<S>, key: K, value: S, 
     childDescriptor = createChildDescriptor(value, key, descriptor);
   } else {
     childDescriptor.copy = value;
-    // if (!descriptor.root.modified.has(childDescriptor)) {
-    //   descriptor.root.modified.add(childDescriptor);
-    // }
   }
 
   const { path } = childDescriptor;
-
-  console.log('Change Path: ', path);
 
   descriptor.root.changed.set(path, value);
   descriptor.root.changedBy.addSet(descriptor.path, path);

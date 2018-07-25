@@ -132,3 +132,249 @@ Change:  [ 'deep', 'array', '2', 'foo' ]
 ```
 
 > `printDifference` is a utility library that was written to ensure references and values are changing as expected while testing. It can be used in your projects if you find it useful :)
+
+#### mergeWithDraft `export`
+
+##### Summary
+
+`mergeWithDraft` provides a way of doing more complex merges that may be necessary without hurting performance as much as manually iterating through all the layers of Proxies that would need to be generated.
+
+This can get especially expensive when the merge ends up not making changes to the final result. With `mergeWithDraft`, we iterate the source and target values directly and only grab from the Proxy when and if needed. This provides near-native performance on merges that would otherwise require a significant amount of proxy generation.
+
+`mergeWithDraft` has various properties added to it which allows configuring the merge that will occur.
+
+- `mergeWithDraft` - Deep merge draft with another object
+- `mergeWithDraft.at` - Deep merge at a given path
+- `mergeWithDraft.deep` - Alias to `mergeWithDraft`
+- `mergeWithDraft.deep.at` - Alias to `mergeWithDraft.at`
+- `mergeWithDraft.shallow` - Shallow merge draft with another object
+- `mergeWithDraft.shallow.at` - Shallow merge draft with another object at a given path.
+
+##### Example
+
+```javascript
+import immuta, { mergeWithDraft } from "immuta";
+import printDifference from "immuta/utils/print-difference";
+
+const state = {
+  deep: {
+    foo: {
+      bar: {
+        baz: true
+      }
+    },
+    set: new Set([{ one: "two" }, { two: "three" }]),
+    map: new Map([["one", { foo: "bar" }]]),
+    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }]
+  }
+};
+
+const next = immuta(
+  // provide the state to start with
+  state,
+  draft => {
+    mergeWithDraft(draft, {
+      deep: {
+        foo: {
+          bar: {
+            foo: true
+          }
+        },
+        set: new Set({ three: "four" }),
+        map: new Map([["one", { bar: "baz" }]]),
+        array: [{ foo: "bar" }]
+      }
+    });
+    mergeWithDraft.at(draft, "deep.array.3.deeper.path.than.it.had", {
+      at: "merge"
+    });
+    mergeWithDraft.at(
+      draft,
+      ["deep", "map", { object: "key" }, "also", "works"],
+      { foo: "bar" }
+    );
+  },
+  (changedState, changedMap, rollback) => {
+    changedMap.forEach((v, changedKey) => {
+      console.log("Change: ", changedKey);
+    });
+  }
+);
+
+printDifference(state, next);
+```
+
+```javascript
+// Results
+Change:  [ 'deep' ]
+Change:  [ 'deep', 'foo' ]
+Change:  [ 'deep', 'foo', 'bar' ]
+Change:  [ 'deep', 'foo', 'bar', 'foo' ]
+Change:  [ 'deep', 'set' ]
+Change:  [ 'deep', 'map' ]
+Change:  [ 'deep', 'map', 'one' ]
+Change:  [ 'deep', 'map', 'one', 'bar' ]
+Change:  [ 'deep', 'array' ]
+Change:  [ 'deep', 'array', '0' ]
+Change:  [ 'deep', 'array', '0', 'foo' ]
+Change:  [ 'deep', 'array', '3' ]
+Change:  [ 'deep', 'array', '3', 'deeper' ]
+Change:  [ 'deep', 'array', '3', 'deeper', 'path' ]
+Change:  [ 'deep', 'array', '3', 'deeper', 'path', 'than' ]
+Change:  [ 'deep', 'array', '3', 'deeper', 'path', 'than', 'it' ]
+Change:  [ 'deep', 'array', '3', 'deeper', 'path', 'than', 'it', 'had' ]
+Change:  [ 'deep', 'map', { object: 'key' } ]
+Change:  [ 'deep', 'map', { object: 'key' }, 'also' ]
+Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
+-----------------------------------------------
+------------------- Results -------------------
+  state: {
+    deep: {
+      foo: {
+        bar: {
+          baz: boolean
+          foo: (
+            Type  =  undefined  --->  "boolean"
+            Value =  undefined  --->  true
+          ),
+        },
+      },
+      set: Set {
+        [add]    =  object { three: 'four' }
+      },
+      map: Map {
+        [change] "one" => (
+          Type  =  object  --->  object
+          Value =  [object Object]  --->  [object Object]
+          {
+            foo: string
+            bar: (
+              Type  =  undefined  --->  string
+              Value =  undefined  --->  "baz"
+            ),
+          }
+        ),
+        [create] "{"object":"key"}" => (
+          Type  =  undefined  --->  object
+          Value =  undefined  --->  [object Object]
+          {
+            also: {
+              works: {
+                foo: (
+                  Type  =  undefined  --->  string
+                  Value =  undefined  --->  "bar"
+                ),
+              },
+            },
+          }
+        ),
+      },
+      array: [
+        0: {
+          i: number
+          foo: (
+            Type  =  undefined  --->  string
+            Value =  undefined  --->  "bar"
+          ),
+        },
+        1: { ... Equal },
+        2: { ... Equal },
+        3: {
+          i: number
+          deeper: {
+            path: {
+              than: {
+                it: {
+                  had: {
+                    at: (
+                      Type  =  undefined  --->  string
+                      Value =  undefined  --->  "merge"
+                    ),
+                  },
+                },
+              },
+            },
+          },
+        },
+        4: { ... Equal },
+      ],
+    },
+  }
+-----------------------------------------------
+-----------------------------------------------
+```
+
+```javascript
+// Stringified final value
+{
+  "deep": {
+    "foo": {
+      "bar": {
+        "baz": true,
+        "foo": true
+      }
+    },
+    "set": [
+      {
+        "one": "two"
+      },
+      {
+        "two": "three"
+      },
+      {
+        "three": "four"
+      }
+    ],
+    "map": [
+      [
+        "one",
+        {
+          "foo": "bar",
+          "bar": "baz"
+        }
+      ],
+      [
+        {
+          "object": "key"
+        },
+        {
+          "also": {
+            "works": {
+              "foo": "bar"
+            }
+          }
+        }
+      ]
+    ],
+    "array": [
+      {
+        "i": 1,
+        "foo": "bar"
+      },
+      {
+        "i": 2
+      },
+      {
+        "i": 3
+      },
+      {
+        "i": 4,
+        "deeper": {
+          "path": {
+            "than": {
+              "it": {
+                "had": {
+                  "at": "merge"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "i": 5
+      }
+    ]
+  }
+}
+```
