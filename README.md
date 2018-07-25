@@ -155,7 +155,8 @@ This can get especially expensive when the merge ends up not making changes to t
 `mergeWithDraft` has two function type signatures. Direct merge and path-based (at) merging.
 
 ```javascript
-type MergeWithDraft = (draft: Immuta$Draft, ...targets: any[]) => any;
+type MergeWithDraft = (draft: Immuta$Draft, ...targets: any[]) => void;
+
 type MergeWithDraftAt = (
   draft: Immuta$Draft,
   path: Immuta$MergePath,
