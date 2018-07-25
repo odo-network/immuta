@@ -38,9 +38,11 @@ const next = immuta(
 
     mergeWithDraft.at(draft, ['deep', 'map', objKey, 'also', 'works'], { foo: 'bar' });
 
-    // we can also do some crazy type check voodoo along the way
-
-    mergeWithDraft.at(draft, ['deep', 'map', objKey, [Map, 'map2'], 'key'], { wait: 'what?' });
+    // we can also do some crazy type check voodoo along the way which can also
+    // hint what types to create if they dont exist yet
+    mergeWithDraft.at(draft, ['deep', 'map', objKey, [Map, 'map2'], objKey, 'more', [Array, 'array'], 0], {
+      wait: 'what?',
+    });
   },
   (changedState, changedMap, rollback) => {
     changedMap.forEach((v, changedKey) => {

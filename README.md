@@ -211,12 +211,23 @@ const next = immuta(
       foo: "bar"
     });
 
-    // we can also do some crazy type check voodoo along the way
-
+    // we can also do some crazy type check voodoo along the way which can also
+    // hint what types to create if they dont exist yet
     mergeWithDraft.at(
       draft,
-      ["deep", "map", objKey, [Map, "map2"], "key"],
-      { wait: "what?" }
+      [
+        "deep",
+        "map",
+        objKey,
+        [Map, "map2"],
+        objKey,
+        "more",
+        [Array, "array"],
+        0
+      ],
+      {
+        wait: "what?"
+      }
     );
   },
   (changedState, changedMap, rollback) => {
@@ -225,6 +236,7 @@ const next = immuta(
     });
   }
 );
+
 printDifference(state, next);
 ```
 
@@ -250,6 +262,29 @@ Change:  [ 'deep', 'array', '3', 'deeper', 'path', 'than', 'it', 'had' ]
 Change:  [ 'deep', 'map', { object: 'key' } ]
 Change:  [ 'deep', 'map', { object: 'key' }, 'also' ]
 Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
+Change:  [ 'deep', 'map', { object: 'key' }, 'map2' ]
+Change:  [ 'deep', 'map', { object: 'key' }, 'map2', { object: 'key' } ]
+Change:  [ 'deep',
+  'map',
+  { object: 'key' },
+  'map2',
+  { object: 'key' },
+  'more' ]
+Change:  [ 'deep',
+  'map',
+  { object: 'key' },
+  'map2',
+  { object: 'key' },
+  'more',
+  'array' ]
+Change:  [ 'deep',
+  'map',
+  { object: 'key' },
+  'map2',
+  { object: 'key' },
+  'more',
+  'array',
+  0 ]
 -----------------------------------------------
 ------------------- Results -------------------
   state: {
@@ -291,14 +326,20 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
               },
             },
             map2: Map {
-              [create] "key" => (
+              [create] "{"object":"key"}" => (
                 Type  =  undefined  --->  object
                 Value =  undefined  --->  [object Object]
                 {
-                  wait: (
-                    Type  =  undefined  --->  string
-                    Value =  undefined  --->  "what?"
-                  ),
+                  more: {
+                    array: [
+                      0: {
+                        wait: (
+                          Type  =  undefined  --->  string
+                          Value =  undefined  --->  "what?"
+                        ),
+                      },
+                    ],
+                  },
                 }
               ),
             },
@@ -336,6 +377,8 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
       ],
     },
   }
+-----------------------------------------------
+-----------------------------------------------
 ```
 
 ```javascript
@@ -379,9 +422,17 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
           },
           "map2": [
             [
-              "key",
               {
-                "wait": "what?"
+                "object": "key"
+              },
+              {
+                "more": {
+                  "array": [
+                    {
+                      "wait": "what?"
+                    }
+                  ]
+                }
               }
             ]
           ]
