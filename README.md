@@ -150,6 +150,8 @@ This can get especially expensive when the merge ends up not making changes to t
 - `mergeWithDraft.shallow` - Shallow merge draft with another object
 - `mergeWithDraft.shallow.at` - Shallow merge draft with another object at a given path.
 
+> **Important**: At the moment `Set` merging may not work as one might generally expect. At this time it will always add the new value to the set if not included in the original set. We explored many options here but it doesn't really seem possible to do any kind of deep merge with `Set` in any expected way with how they work in the end. Happy to discuss if you open an issue and see if we can come up with a good solution!
+
 ##### Type Signatures
 
 `mergeWithDraft` has two function type signatures. Direct merge and path-based (at) merging.
