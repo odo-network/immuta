@@ -23,7 +23,7 @@ const rootDescriptor = {
   get root() {
     return this;
   },
-
+  type: 'object',
   isRoot: true,
   revoked: false,
   base: undefined,
@@ -102,6 +102,8 @@ export const createChildDescriptor = <+S>(
 
   const descriptor: ProxyDescriptor$Child<S> = {
     isPotentialParent,
+    isRoot: false,
+    type: utils.isType(base),
     path,
     base,
 
@@ -139,7 +141,9 @@ export function getPaths<+S>(descriptor: ProxyDescriptor<S>, key: string) {
   if (d) {
     paths.current = d.path;
   } else {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Invalid Path Request for "${key}" at path [${descriptor.path.join(', ')}]`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Invalid Path Request for "${key}" at path [${descriptor.path.join(', ')}]`,
+    );
   }
   paths.parent = descriptor.path;
   return paths;
@@ -199,9 +203,13 @@ function get<S>(_descriptor: ProxyDescriptor<S>, key: any) {
   return response;
 }
 
-function set<+S>(descriptor: ProxyDescriptor<S>, key: any, value: any) {
+function set<+S: Object>(descriptor: ProxyDescriptor<S>, key: any, value: any) {
   if (utils.getValue(descriptor, key) === value) {
     return true;
+  }
+  if (descriptor.children.has(key)) {
+    // clean the children
+    utils.cleanChildren(descriptor.children.get(key));
   }
   return change(descriptor, key, value);
 }
@@ -327,6 +335,10 @@ function apply<F: Function>(fn: F, context: any, args: any[], proxy) {
       if (!owner.has(args[0])) {
         return;
       }
+      if (parent.root.changed.has(parent.path)) {
+        console.log(parent.children);
+      }
+      console.log('Set Delete: ', parent.path, parent.root.changedBy);
       willChange = true;
       break;
     }
@@ -389,11 +401,15 @@ function deleteProperty<+S>(descriptor: ProxyDescriptor<S>, key: any) {
 
 function defineProperty() {
   // console.log('Define Property');
-  throw new Error(`[${MODULE_NAME}] | ERROR | defineProperty | It is an error to define properties on draft objects`);
+  throw new Error(
+    `[${MODULE_NAME}] | ERROR | defineProperty | It is an error to define properties on draft objects`,
+  );
 }
 
 function setPrototypeOf() {
-  throw new Error(`[${MODULE_NAME}] | ERROR | defineProperty | It is an error to set the prototype of draft objects`);
+  throw new Error(
+    `[${MODULE_NAME}] | ERROR | defineProperty | It is an error to set the prototype of draft objects`,
+  );
 }
 
 function getPrototypeOf<+S: Object>(descriptor: ProxyDescriptor<S>) {

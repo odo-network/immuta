@@ -1,6 +1,23 @@
 /* @flow */
 import type SetMap from './setmap';
 
+export type PossibleValueTypes =
+  | 'undefined'
+  | 'null'
+  | 'array'
+  | 'map'
+  | 'set'
+  | 'regexp'
+  | 'object'
+  | 'date'
+  | 'number'
+  | 'nan'
+  | 'symbol'
+  | 'function'
+  | 'boolean'
+  | 'string'
+  | 'unknown';
+
 /**
  * Dynamically created and holds all important proxy properties.  It is technically
  * the value that is returned and the base of the proxy.
@@ -28,6 +45,7 @@ export type ProxyDescriptor$Root<S> = {|
   +changed: Map<string[], Object>,
   +changedBy: SetMap<string[], string[]>,
   +modified: WeakSet<ProxyDescriptor<*>>,
+  +type: 'object',
 |};
 
 export type ProxyDescriptor$Child<S> = {|
@@ -42,26 +60,19 @@ export type ProxyDescriptor$Child<S> = {|
 
   +children: Map<any, ProxyDescriptor<*>>,
   +root: ProxyDescriptor$Root<*>,
-  +isRoot?: void | false,
+  +isRoot: false,
+  +type: PossibleValueTypes,
   +parent: ProxyDescriptor<*>,
 |};
 
-export type PossibleValueTypes =
-  | 'undefined'
-  | 'null'
-  | 'array'
-  | 'map'
-  | 'set'
-  | 'regexp'
-  | 'object'
-  | 'date'
-  | 'number'
-  | 'nan'
-  | 'symbol'
-  | 'function'
-  | 'boolean'
-  | 'string'
-  | 'unknown';
-
 // Any kind of ProxyDescriptor
 export type ProxyDescriptor<S> = ProxyDescriptor$Root<S> | ProxyDescriptor$Child<S>;
+
+export type MergerDescriptor = [Class<Map<*, *>> | Class<Set<*>>, mixed];
+
+export type MergerPath = Array<MergerDescriptor | any>;
+
+export type MergerConfig = {|
+  path: MergerPath,
+  deep: boolean,
+|};

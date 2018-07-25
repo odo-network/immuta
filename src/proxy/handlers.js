@@ -13,12 +13,7 @@ import { createChildDescriptor } from './index';
  * @param {any} value
  * @param {?boolean?} isDelete
  */
-export function change<+S: Object>(
-  descriptor: ProxyDescriptor<S>,
-  key: string,
-  value: any,
-  isDelete?: boolean = false,
-) {
+export function change<+S, K>(descriptor: ProxyDescriptor<S>, key: K, value: S, isDelete?: boolean = false) {
   if ((isDelete && !utils.hasProperty(utils.getValue(descriptor), key)) || utils.is(descriptor.base, key, value)) {
     // value has returned to the base value - it is not changed anymore
     return revert(descriptor, key);
@@ -56,6 +51,8 @@ export function change<+S: Object>(
 
   const { path } = childDescriptor;
 
+  console.log('Change Path: ', path);
+
   descriptor.root.changed.set(path, value);
   descriptor.root.changedBy.addSet(descriptor.path, path);
 
@@ -70,7 +67,7 @@ export function change<+S: Object>(
  * @param {ProxyDescriptor} descriptor
  * @param {string} key
  */
-export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) {
+export function revert<+S, K>(descriptor: ProxyDescriptor<S>, key: K) {
   let childDescriptor;
   if (descriptor.base instanceof Map || descriptor.base instanceof Set) {
     childDescriptor = descriptor;
@@ -101,7 +98,19 @@ export function revert<+S: Object>(descriptor: ProxyDescriptor<S>, key: string) 
   if (descriptor.copy) {
     // we need to set our base value back on the copy
     // if it still exists
-    descriptor.copy[key] = descriptor.base[key];
+    switch (descriptor.type) {
+      case 'map': {
+        descriptor.copy.set(key, descriptor.base.get(key));
+        break;
+      }
+      case 'set': {
+        break;
+      }
+      default: {
+        descriptor.copy[key] = descriptor.base[key];
+        break;
+      }
+    }
   }
   return true;
 }

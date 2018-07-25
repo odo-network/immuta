@@ -1,38 +1,74 @@
-/* @flow */
-import immuta from './src/immuta';
-import printDifference from './src/utils/print-difference';
+import immuta, { mergeWithDraft } from './src';
+
+const kv = {
+  my: 'key',
+};
+
+const kv2 = {
+  another: 'key',
+};
+
+const foo = {
+  foo: 'boo!',
+};
+
+const bar = {
+  bar: 'yep!',
+};
 
 const state = {
-  deep: {
-    foo: {
-      bar: {
-        baz: true,
-      },
+  one: {
+    two: {
+      map: new Map([[kv, kv2], ['hello', 'world']]),
+      foo: 'bar',
     },
-    set: new Set([{ one: 'two' }, { two: 'three' }]),
-    map: new Map([['one', { foo: 'bar' }]]),
-    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }],
+  },
+};
+
+const update = {
+  two: {
+    lets: 'go',
+    map: new Map([[kv, foo], [bar, foo], ['hello', 'world!']]),
   },
 };
 
 const next = immuta(
-  // provide the state to start with
   state,
-  // draft is a proxy that will copy-on-write
   draft => {
-    const val = draft.deep.map.get('one');
-    foo.baz = 'qux';
+    mergeWithDraft(draft.one, update);
   },
-  // optional callback for change events
-  (changedState, changedMap, rollback) => {
-    // rollback() will cancel the changes and return original object
-    // changedMap is Map { 'path.to.change' => changedValue }
-    // changedState is the new state being returned to caller (nextState)
-    changedMap.forEach((v, changedKey) => {
-      console.log('Change: ', changedKey);
-    });
+  (nextState, changes) => {
+    console.log('Changes: ', changes);
   },
 );
 
-printDifference(state, next);
-// console.log(next.deep.map.get('one'));
+console.log(`
+  --- RESULTS ---
+
+  Is Equal?  ${next === state}
+
+  Old Value:
+  ${JSON.stringify(state, null, 2)}
+
+  New Value:
+  ${JSON.stringify(next, null, 2)}
+`);
+
+// const expected = {
+//   one: {
+//     two: Map {
+//       { key: 'value' } =>
+//         {
+//           deal: {
+//             ok: {
+//               foo: 'bar'
+//             }
+//           }
+//         }
+//     }
+//   }
+// }
+
+console.log(next === state);
+console.log(next);
+console.log(next.one);

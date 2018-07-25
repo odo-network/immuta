@@ -26,7 +26,10 @@ export function mergeWithDraft(draft, obj, config = defaultMergerConfig, _base) 
   // we want to use the base object for any checks since
   // modifying the draft will result in low perf due to
   // proxy.
-  if (typeof obj === 'object') {
+  if (Array.isArray(obj)) {
+    // arrays are merged one-by-one into the draft
+    obj.forEach(mergeObj => mergeWithDraft(draft, mergeObj, config, _base));
+  } else if (typeof obj === 'object') {
     const base = _base || getProxiedValue(draft);
     mergeDraftAtLevel(base, obj, draft, config);
   } else {
@@ -52,44 +55,52 @@ mergeWithDraft.at = function mergeWithDraftAtPath(_draft, _path, obj, config) {
   let draftType;
   let draftKey;
   let areAddingNewKeys = false;
-  let i = 0;
+  let i = -1;
 
   for (const key of path) {
     i += 1;
-    if (key !== Map || key !== Set) {
-      draftKey = key;
+
+    if (key !== Map && key !== Set) {
+      let type;
       if (base instanceof Map) {
         base = base.get(key);
-        draftType = 'map';
+        type = 'map';
       } else {
         base = base[key];
-        draftType = 'object';
+        type = 'object';
       }
       if (typeof base !== 'object') {
         areAddingNewKeys = true;
         break;
       } else {
-        draft = getDraftChild(draftType, draft, key);
+        draftKey = key;
+        draftType = type;
+        draft = getDraftChild(type, draft, key);
       }
     }
   }
 
+  console.log(i, ' vs ', depth);
+  console.log(areAddingNewKeys);
+
   if (areAddingNewKeys) {
     const update = getTypeValue('base', path, i);
+    console.log(update);
     let current = update;
     path.slice(i).forEach(key => {
       i += 1;
       if (key !== Set && key !== Map) {
-        if (i <= depth) {
+        if (i < depth) {
           const childValue = getTypeValue('base', path, i);
-
-          setDraftChild(getTypeValue('type', path, i - 2), current, key, childValue, i);
+          setDraftChild(getTypeValue('type', path, i - 2), current, key, childValue);
           current = childValue;
         } else {
+          console.log('Setting Obj', path[i - 2], getTypeValue('type', path, i - 2));
           setDraftChild(getTypeValue('type', path, i - 2), current, key, obj);
         }
       }
     });
+    console.log('is set on: ', draftType, draftKey, update);
     setDraftChild(draftType, draft, draftKey, update);
   } else {
     mergeWithDraft(draft, obj, config, base);
@@ -109,7 +120,10 @@ function getTypeValue(type, path, i) {
   if (preKey === Set) {
     return type === 'base' ? new Set() : 'set';
   }
-  const key = path[i + 1];
+  let key = path[i + 1];
+  if (key === Map || key === Set) {
+    key = path[i + 2];
+  }
   if (!Number.isNaN(Number(key))) {
     return type === 'base' ? [] : 'array';
   }
@@ -143,7 +157,15 @@ function getDraftChild(parentType, draft, key) {
 function setDraftChild(parentType, draft, key, value) {
   switch (parentType) {
     case 'map': {
-      draft.set(key, value);
+      if (key) {
+        draft.set(key, value);
+      } else {
+        throw new TypeError(
+          `[ERORR] | immuta | mergeWithDraft | setDraftChild expects key to be a value while setting a Map while trying to set ${String(
+            value,
+          )} on the draft.`,
+        );
+      }
       break;
     }
     case 'set': {
@@ -153,7 +175,17 @@ function setDraftChild(parentType, draft, key, value) {
     case 'array':
     case 'object':
     default: {
-      draft[key] = value;
+      if (key) {
+        // $FlowIgnore
+        draft[key] = value;
+      } else {
+        throw new TypeError(
+          `[ERORR] | immuta | mergeWithDraft | setDraftChild expects key to be a value while setting an Array or Object while trying to set ${String(
+            value,
+          )} on the draft.`,
+        );
+      }
+
       break;
     }
   }

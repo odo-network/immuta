@@ -28,6 +28,7 @@
     "no-use-before-define": "off",
     "no-unused-expressions": "off",
     "no-restricted-syntax": "off",
+    "class-methods-use-this": "off",
     "no-param-reassign": "off",
     "max-len": [
       "error",

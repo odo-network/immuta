@@ -11,10 +11,13 @@ import * as handle from './proxy/handlers';
 
 type ImmutaConfig = {|
   freeze: boolean,
-  base: void | Object,
+  // UNFINISHED - a way to allow us to save and return
+  //              unfrozen versions of the result
+  save: boolean,
 |};
 
 export const config: ImmutaConfig = {
+  save: true,
   freeze: true,
 };
 /*

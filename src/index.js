@@ -1,4 +1,4 @@
 export * from './immuta';
-export * from './utils/merge';
+export * from './merge';
 
 export { default } from './immuta';

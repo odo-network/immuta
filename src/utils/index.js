@@ -2,7 +2,8 @@
 
 import type { PossibleValueTypes, ProxyDescriptor } from '../types';
 // import { createChildDescriptor } from '../proxy';
-import { PROXY_SYMBOL } from './context';
+import { PROXY_SYMBOL, MODULE_NAME } from './context';
+import { change } from '../proxy/handlers';
 
 export function isType<V>(value: V): PossibleValueTypes {
   if (value === undefined) return 'undefined';
@@ -69,23 +70,100 @@ export function shallowCopy<O: Object>(obj: O): $Shape<O> {
   return Object.assign(newobj, obj);
 }
 
-export function getValue<+S>(descriptor: ProxyDescriptor<S>, key?: any): S {
+export function getValue<+S, +K>(descriptor: ProxyDescriptor<S>, key?: K) {
   if (typeof descriptor === 'function') {
     return descriptor;
   }
-  const base = hasProperty(descriptor, 'copy') ? descriptor.copy : descriptor.base;
+
+  let base;
+  if ('copy' in descriptor) {
+    base = descriptor.copy;
+  } else {
+    ({ base } = descriptor);
+  }
+
   if (key) {
     return Reflect.get(base, key);
   }
+
   return base;
 }
 
-export function getProxiedValue(proxy) {
-  const descriptor = proxy[PROXY_SYMBOL];
+export function getProxyDescriptor<+P: Object>(proxy: P): void | ProxyDescriptor<*> {
+  return proxy[PROXY_SYMBOL];
+}
+
+export function getKeyOfDescriptor<+S>(descriptor: ProxyDescriptor<S>): string {
+  if (descriptor.isRoot) {
+    throw new Error(
+      `[ERROR] | ${MODULE_NAME} | getKeyOfDescriptor | Attempted to get the key of the root descriptor`,
+    );
+  }
+  return descriptor.path[descriptor.path.length - 1];
+}
+
+export function getParentOfDescriptor<+S>(descriptor: ProxyDescriptor<S>): ProxyDescriptor<*> {
+  if (descriptor.isRoot) {
+    throw new Error(
+      `[ERROR] | ${MODULE_NAME} | getParentOfDescriptor | Attempted to get the parent of the root descriptor`,
+    );
+  }
+  return descriptor.parent;
+}
+
+export function getProxiedValue<+P: Object>(proxy: P) {
+  const descriptor = getProxyDescriptor(proxy);
+  if (!descriptor) {
+    throw new TypeError(
+      `[ERROR] | ${MODULE_NAME} | getProxiedValue | Provided value does not appear to be an immuta proxy.`,
+    );
+  }
   return getValue(descriptor);
 }
 
-export function is(obj, key, value2) {
+export function getChildProxy<+S, +K>(descriptor: ProxyDescriptor<S>, key: K) {
+  const { type, proxy } = descriptor;
+  if (!proxy) {
+    console.warn('No Proxy in Descriptor?');
+    return null;
+  }
+  switch (type) {
+    case 'map': {
+      // $FlowIgnore
+      return proxy.get(key);
+    }
+    case 'set': {
+      const source = getValue(descriptor);
+      if (source.has(key)) {
+        console.log('has but what next?');
+      }
+      break;
+    }
+    case 'array':
+    case 'object': {
+      // $FlowIgnore
+      return proxy[key];
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+export function cleanChildren<+S: Object>(descriptor: void | ProxyDescriptor<S>) {
+  if (!descriptor || !descriptor.children) return;
+  descriptor.children.forEach((child, childKey) => {
+    const { children } = child;
+    if (children && children.size) {
+      cleanChildren(child);
+    }
+    child.root.changed.delete(child.path);
+    child.root.changedBy.removeSet(descriptor.path, child.path);
+    descriptor.children.delete(childKey);
+  });
+}
+
+export function is<+O: Object, K, V>(obj: O, key: K, value2: V): boolean {
   let value;
   if (obj instanceof Map) {
     value = obj.get(key);
@@ -100,14 +178,13 @@ export function is(obj, key, value2) {
   return Object.is(value, value2);
 }
 
-export function hasProperty<+O: Object>(obj: O, prop: any): boolean {
-  if (obj instanceof Map || obj instanceof Set) {
-    return obj.has(prop);
-  }
-  return Object.hasOwnProperty.call(obj, prop);
+export function hasProperty<+O: Object, K>(obj: O, prop: K): boolean {
+  if (typeof obj !== 'object') return false;
+  if (obj instanceof Map || obj instanceof Set) return obj.has(prop);
+  return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-export function isCustomInspect(key) {
+export function isCustomInspect<K>(key: K) {
   return Object.is(String(Symbol.prototype.valueOf.call(key)), 'Symbol(util.inspect.custom)');
 }
 
@@ -117,4 +194,25 @@ export function revokeProxies<+S>(descriptor: ProxyDescriptor<S>): void {
   }
   descriptor.root.revoked = true;
   descriptor.root.revokes.clear();
+}
+
+/**
+ * sets the value of the given descriptor by first capturing
+ * its parent and its current key and providing it to the
+ * standard proxy handler.
+ * @param {*} descriptor
+ * @param {*} value
+ */
+export function setDescriptorsValue<+S>(descriptor: ProxyDescriptor<S>, value: S) {
+  const parent = getParentOfDescriptor(descriptor);
+  const key = getKeyOfDescriptor(descriptor);
+  return setDescriptorChild(parent, key, value);
+}
+
+export function setDescriptorChild<+S, K>(descriptor: ProxyDescriptor<S>, key: K, value: S) {
+  if (descriptor.children.has(key)) {
+    // clean the children
+    cleanChildren(descriptor.children.get(key));
+  }
+  return change(descriptor, key, value);
 }

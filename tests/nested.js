@@ -23,6 +23,7 @@ test('nested calls dont cause errors or mutate when no changes are made', t => {
       // do nothing!
     });
   });
+  t.is(data, next);
   t.deepEqual(data, next);
 });
 
