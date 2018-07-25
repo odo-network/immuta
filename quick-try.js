@@ -1,48 +1,54 @@
 import immuta, { mergeWithDraft } from './src';
 import printDifference from './src/utils/print-difference';
 
-const k1 = { foo: 1 };
-const k2 = { bar: 2 };
-const k3 = { baz: 3 };
-
 const state = {
-  map: new WeakMap([[k1, k2]]),
+  deep: {
+    foo: {
+      bar: {
+        baz: true,
+      },
+    },
+    set: new Set([{ one: 'two' }, { two: 'three' }]),
+    map: new Map([['one', { foo: 'bar' }]]),
+    array: [{ i: 1 }, { i: 2 }, { i: 3 }, { i: 4 }, { i: 5 }],
+  },
 };
 
-const next = immuta(state, draft => {
-  mergeWithDraft.at(draft, ['map', k1], k3);
-});
+const next = immuta(
+  // provide the state to start with
+  state,
+  draft => {
+    mergeWithDraft(draft, {
+      deep: {
+        foo: {
+          bar: {
+            foo: true,
+          },
+        },
+        set: new Set([{ three: 'four' }]),
+        map: new Map([['one', { bar: 'baz' }]]),
+        array: [{ foo: 'bar' }],
+      },
+    });
+    mergeWithDraft.at(draft, 'deep.array.3.deeper.path.than.it.had', {
+      at: 'merge',
+    });
 
-// printDifference(state, next);
+    const objKey = { object: 'key' };
 
-console.log(state.map.get(k1));
+    mergeWithDraft.at(draft, ['deep', 'map', objKey, 'also', 'works'], { foo: 'bar' });
 
-console.log(next);
+    // we can also do some crazy type check voodoo along the way
 
-console.log(next.map.get(k1));
-// console.log(`
-//   --- RESULTS ---
+    mergeWithDraft.at(draft, ['deep', 'map', objKey, [Map, 'map2'], 'key'], { wait: 'what?' });
+  },
+  (changedState, changedMap, rollback) => {
+    changedMap.forEach((v, changedKey) => {
+      console.log('Change: ', changedKey);
+    });
+  },
+);
 
-//   Is Equal?  ${next === state}
+printDifference(state, next);
 
-//   Old Value:
-//   ${JSON.stringify(state, null, 2)}
-
-//   New Value:
-//   ${JSON.stringify(next, null, 2)}
-// `);
-
-// const expected = {
-//   one: {
-//     two: Map {
-//       { key: 'value' } =>
-//         {
-//           deal: {
-//             ok: {
-//               foo: 'bar'
-//             }
-//           }
-//         }
-//     }
-//   }
-// }
+console.log(JSON.stringify(next, null, 2));

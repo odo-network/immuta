@@ -196,7 +196,7 @@ const next = immuta(
             foo: true
           }
         },
-        set: new Set({ three: "four" }),
+        set: new Set([{ three: "four" }]),
         map: new Map([["one", { bar: "baz" }]]),
         array: [{ foo: "bar" }]
       }
@@ -282,6 +282,18 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
                 ),
               },
             },
+            map2: Map {
+              [create] "key" => (
+                Type  =  undefined  --->  object
+                Value =  undefined  --->  [object Object]
+                {
+                  wait: (
+                    Type  =  undefined  --->  string
+                    Value =  undefined  --->  "what?"
+                  ),
+                }
+              ),
+            },
           }
         ),
       },
@@ -316,8 +328,6 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
       ],
     },
   }
------------------------------------------------
------------------------------------------------
 ```
 
 ```javascript
@@ -358,7 +368,15 @@ Change:  [ 'deep', 'map', { object: 'key' }, 'also', 'works' ]
             "works": {
               "foo": "bar"
             }
-          }
+          },
+          "map2": [
+            [
+              "key",
+              {
+                "wait": "what?"
+              }
+            ]
+          ]
         }
       ]
     ],
