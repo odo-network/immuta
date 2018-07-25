@@ -204,10 +204,19 @@ const next = immuta(
     mergeWithDraft.at(draft, "deep.array.3.deeper.path.than.it.had", {
       at: "merge"
     });
+
+    const objKey = { object: "key" };
+
+    mergeWithDraft.at(draft, ["deep", "map", objKey, "also", "works"], {
+      foo: "bar"
+    });
+
+    // we can also do some crazy type check voodoo along the way
+
     mergeWithDraft.at(
       draft,
-      ["deep", "map", { object: "key" }, "also", "works"],
-      { foo: "bar" }
+      ["deep", "map", objKey, [Map, "map2"], "key"],
+      { wait: "what?" }
     );
   },
   (changedState, changedMap, rollback) => {
@@ -216,7 +225,6 @@ const next = immuta(
     });
   }
 );
-
 printDifference(state, next);
 ```
 
