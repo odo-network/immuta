@@ -8,7 +8,7 @@
     "build:immuta:babel": "babel src --out-dir dist",
     "build:immuta:flow": "flow-copy-source src dist",
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --ignoreDeps peer --overwrite || true",
-    "prepublish": "npm-run-all build",
+    "prepublishOnly": "npm-run-all build",
     "test:perf": "babel-node perf/run.js",
     "perf": "babel-node perf/tests/test1.js",
     "try": "babel-node ./quick-try.js",
