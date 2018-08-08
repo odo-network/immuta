@@ -1,6 +1,6 @@
 [ignore]
 .*tests/.*
-<PROJECT_ROOT>/\.junk/.*
+\.junk/.*
 
 [libs]
 internals/flow/definitions
