@@ -4,13 +4,13 @@ import immuta from '../src';
 
 const data = {
   deep: {
-    bar: 'baz',
+    bar: 'bar',
   },
 };
 
 test('reference equal when no changes', t => {
   const next = immuta(data, draft => {
-    draft.deep.bar = 'baz';
+    draft.deep.bar = 'bar';
   });
   t.is(data, next);
   t.is(data.deep, next.deep);
@@ -38,7 +38,7 @@ test('reference not equal when property deletion occurs', t => {
 test('reference equal when property deletion occurs but is reverted', t => {
   const next = immuta(data, draft => {
     delete draft.deep.bar;
-    draft.deep.bar = 'baz';
+    draft.deep.bar = 'bar';
   });
   t.is(data, next);
   t.is(data.deep, next.deep);
@@ -89,4 +89,31 @@ test('setting object then retrieving object and mutating works as expected', t =
   });
   t.not(data, next);
   t.notDeepEqual(data, next);
+});
+
+test('consecutive use of previously (frozen) object works', t => {
+  const first = immuta(data, draft => {
+    draft.deep.foo = 'foo';
+  });
+  const second = immuta(first, draft => {
+    draft.deep.baz = 'baz';
+  });
+  t.deepEqual(data, {
+    deep: {
+      bar: 'bar',
+    },
+  });
+  t.deepEqual(first, {
+    deep: {
+      bar: 'bar',
+      foo: 'foo',
+    },
+  });
+  t.deepEqual(second, {
+    deep: {
+      bar: 'bar',
+      foo: 'foo',
+      baz: 'baz',
+    },
+  });
 });
