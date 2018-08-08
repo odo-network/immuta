@@ -230,6 +230,21 @@ const next = immuta(
       }
     );
   },
+  mergeWithDraft.at(
+      draft,
+      [
+        "deep",
+        "map",
+        objKey,
+        [Map, "map2"],
+        objKey,
+        "another",
+      ],
+      {
+        merged: "value"
+      }
+    );
+  },
   (changedState, changedMap, rollback) => {
     changedMap.forEach((v, changedKey) => {
       console.log("Change: ", changedKey);

@@ -7,8 +7,6 @@ import {
   isType, getProxyDescriptor, getChildProxy, setDescriptorsValue, setDescriptorChild,
 } from '../utils';
 
-import WeakMapProxy from '../utils/WeakMapProxy';
-
 type PathResultObj = {
   path: void | MergerPath,
   descriptor: void | ProxyDescriptor<*>,
@@ -217,7 +215,7 @@ function prepareMergeAtPath(_descriptor, _path, target) {
             break;
           }
           case 'weakmap': {
-            setDescriptorChild(descriptor, key, new WeakMapProxy());
+            setDescriptorChild(descriptor, key, new WeakMap());
             break;
           }
           case 'weakset': {

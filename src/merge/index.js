@@ -28,7 +28,7 @@ function isValidMergeConfig() {
   }
 }
 
-function validateMergeIsValid(target) {
+function validateMergeIsValid() {
   // can we merge (is target object);
   // isMergeable(target);
   // is config valid?
@@ -74,7 +74,7 @@ function getPath(path) {
  */
 function mergeTargets<+D>(draft: D, targets: Object[]) {
   targets.forEach(target => {
-    validateMergeIsValid(target);
+    validateMergeIsValid();
     merge(draft, target, config);
   });
 }

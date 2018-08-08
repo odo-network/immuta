@@ -55,26 +55,38 @@ export function shallowCopy<O: Object>(obj: O): $Shape<O> {
     return obj;
   }
 
-  if (obj instanceof Map) {
-    return new Map(obj);
-  }
-  if (obj instanceof WeakMap) {
-    // we cant access the keys of the object so a clone
-    // can only be a brand new weak map
-    return new WeakMapProxy(obj);
-  }
-  if (obj instanceof Set) {
-    return new Set(obj);
-  }
-  if (Array.isArray(obj)) {
-    return obj.slice();
-  }
+  const type = isType(obj);
 
-  const proto = Object.getPrototypeOf(obj);
+  switch (type) {
+    default:
+    case 'object': {
+      const proto = Object.getPrototypeOf(obj);
 
-  const newobj = proto ? {} : Object.create(null);
+      const newobj = proto ? {} : Object.create(null);
 
-  return Object.assign(newobj, obj);
+      return Object.assign(newobj, obj);
+    }
+    case 'array': {
+      return obj.slice();
+    }
+    case 'map': {
+      if (obj instanceof WeakMap) {
+        // we cant access the keys of the object so a clone
+        // can only be a brand new weak map
+        return new WeakMapProxy(obj);
+      }
+      return new Map(obj);
+    }
+    case 'set': {
+      return new Set(obj);
+    }
+    case 'date': {
+      return new Date(obj);
+    }
+    case 'regexp': {
+      return new RegExp(obj);
+    }
+  }
 }
 
 export function getValue<+S, +K>(descriptor: ProxyDescriptor<S>, key?: K) {
