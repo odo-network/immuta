@@ -8,7 +8,6 @@
         useBuiltIns: 'usage',
         targets: {
           node: true,
-          browsers: ['last 2 versions'],
         },
       },
     ],

@@ -1,6 +1,8 @@
+import immer from 'immer';
 import bench from '../run';
 import immuta from '../../src/immuta';
-import immer from '../../.junk/src/immer';
+
+// ! TODO - Need to conduct real perf testing
 
 const obj = {
   deep: {
